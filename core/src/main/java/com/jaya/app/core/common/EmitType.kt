@@ -13,4 +13,5 @@ enum class EmitType {
     PACKAGING_PLANT,
     PACKAGING_LIST,
     PRODUCT_TYPES,
+    PROD_DATA
 }

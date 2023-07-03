@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -27,11 +29,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Surface
@@ -39,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,10 +55,12 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberAsyncImagePainter
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.BackPressHandler
 import com.jaya.app.jayamixing.presentation.viewmodels.BaseViewModel
@@ -143,6 +150,7 @@ fun DashboardScreen(
         }
     }
 
+
     val activity= LocalContext.current as Activity
     viewModel.dashboardBack.value?.apply {
         if (currentState()) {
@@ -216,6 +224,9 @@ fun BodyContentComponent(
     viewModel: DashboardViewModel,
     baseViewModel: BaseViewModel
 ) {
+
+    dashboardDetails(viewModel)
+
 //    when (currentScreen) {
 //        DrawerAppScreen.Home -> DashboardScreen( baseViewModel,viewModel)
 //    }
@@ -249,7 +260,7 @@ fun DrawerContentComponent(
             ) {
 
                 Text(
-                    text = "${viewModel.userName.value}",
+                    text = viewModel.userName.value,
                     color = Color.White, // Header Color
                     fontSize = 20.sp,
                     textAlign = TextAlign.Start,
@@ -259,7 +270,7 @@ fun DrawerContentComponent(
                         .padding(top = 20.dp)
                 )
                 Text(
-                    text = "${viewModel.userId.value}",
+                    text = viewModel.userId.value,
                     color = Color.White, // Header Color
                     fontSize = 15.sp,
                     textAlign = TextAlign.Start,
@@ -269,7 +280,7 @@ fun DrawerContentComponent(
                     //.padding(top = 8.dp)
                 )
                 Text(
-                    text = "${viewModel.emailId.value}",
+                    text = viewModel.emailId.value,
                     color = Color.White, // Header Color
                     fontSize = 15.sp,
                     textAlign = TextAlign.Start,
@@ -279,7 +290,7 @@ fun DrawerContentComponent(
                     // .padding(top = 8.dp)
                 )
                 Text(
-                    text = "${viewModel.designation.value}",
+                    text = viewModel.designation.value,
                     color = Color.White,
                     fontSize = 15.sp,
                     textAlign = TextAlign.Start,
@@ -344,5 +355,93 @@ fun DrawerContentComponent(
             }
         }
     }
+}
+
+@Composable
+fun dashboardDetails(viewModel: DashboardViewModel){
+
+        LazyColumn(){
+            itemsIndexed(viewModel.productsList.value.toList()){index,item->
+                OutlinedCard(
+                    modifier = Modifier
+                        .fillMaxWidth(1f)
+                        .padding(bottom = 30.dp, start = 20.dp, end = 20.dp, top = 30.dp),
+                    shape = RoundedCornerShape(5.dp),
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = Color.White
+                    ),
+                    border = BorderStroke(1.dp, color = Color.LightGray),
+                    elevation = CardDefaults.outlinedCardElevation(
+                        defaultElevation = 10.dp
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(30.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.Top
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ){
+                                Text(
+                                    text = "${item.plantStatus} - ${item.shiftStatus}",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 20.dp, start = 20.dp)
+                                )
+                                Text(
+                                    text = "${item.timeStamp}",
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier.padding(top = 22.dp, start = 65.dp)
+                                )
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ){
+                                Text(
+                                    text = "Supervisor : ${item.superVisorName}",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier.padding(top = 20.dp, start = 20.dp, bottom = 20.dp)
+                                )
+                            }
+                            Text(
+                                text = "${item.productName}",
+                                fontSize = 17.sp,
+                                modifier= Modifier
+                                    .fillMaxWidth(1f)
+                                    .fillMaxHeight(0.10f)
+                                    .background(Color.Black)
+                                    .padding(start = 20.dp, bottom = 20.dp, end = 20.dp, top = 15.dp),
+                                color = Color.White,
+                            )
+
+                            Text(
+                                text = "Packing Supervisor : ",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Normal,
+                                modifier = Modifier.padding(top = 20.dp, start = 20.dp)
+                            )
+                            Text(
+                                text = "${item.packingSupervisor}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(top = 5.dp, end = 22.dp, bottom = 20.dp, start = 20.dp)
+                            )
+
+                        }
+
+                    }
+                }
+            }
+        }
+
+
 }
 

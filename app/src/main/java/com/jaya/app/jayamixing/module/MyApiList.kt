@@ -3,6 +3,8 @@ package com.jaya.app.jayamixing.module
 import com.jaya.app.core.domain.model.AppVersionModel
 import com.jaya.app.core.domain.model.BaseUrlModel
 import com.jaya.app.core.domain.model.GetOtpModel
+import com.jaya.app.core.domain.model.ProductSubmitModel
+import com.jaya.app.core.domain.model.UserDetailsModel
 import com.jaya.app.core.domain.model.VerifyOtpModel
 import retrofit2.http.GET
 
@@ -19,4 +21,10 @@ interface MyApiList {
 
     @GET("2e71ccced6e82f10cb90")
     suspend fun verifyOtp(): VerifyOtpModel
+
+    @GET("967453da83f0011fc01a")
+    suspend fun getUserDetails(): UserDetailsModel
+
+    @GET("5c86e92cf796c031bcb6")
+    suspend fun getProductDetails(): ProductSubmitModel
 }
