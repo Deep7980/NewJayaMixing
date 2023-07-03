@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Jaya Mixing Supervisor</string>
+    <string name="welcome_to_jaya_industries">Welcome to Jaya Industries</string>
+    <string name="login_here">Login Here</string>
+    <string name="all_rights_reserved">All Rights Reserved by Jaya Industries Pvt Ltd</string>
+    <string name="loading">Loading...</string>
+</resources>
