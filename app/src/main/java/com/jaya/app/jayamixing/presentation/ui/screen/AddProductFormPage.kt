@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,7 +21,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -54,6 +57,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -61,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jaya.app.jayamixing.R
+import com.jaya.app.jayamixing.extensions.screenWidth
 import com.jaya.app.jayamixing.presentation.ui.custom_view.CuttingManDropDown
 import com.jaya.app.jayamixing.presentation.ui.custom_view.FloorManagerDropdown
 import com.jaya.app.jayamixing.presentation.ui.custom_view.MixingManDropdown
@@ -71,6 +76,7 @@ import com.jaya.app.jayamixing.presentation.ui.custom_view.ProductsDropdown
 import com.jaya.app.jayamixing.presentation.viewmodels.AddProductViewModel
 import com.jaya.app.jayamixing.presentation.viewmodels.BaseViewModel
 import com.jaya.app.jayamixing.ui.theme.AppBarYellow
+import com.jaya.app.jayamixing.ui.theme.LogoutRed
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
 import java.util.Locale
 
@@ -242,104 +248,208 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
             }//row
         }//card
 
-        FloorManagerDropdown(
-            viewModel,
-            false,
-            viewModel.floorTypes.collectAsState().value,
-            onSelect = {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                //viewModel.selectedPincode.value = it
-            })
-
-        ProductsDropdown(
-            viewModel,
-            false ,
-            viewModel.productTypes.collectAsState().value ,
-            onSelect = {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            }
-        )
-
-        OutlinedTextField(
-            value = viewModel.initialName.value,
-            onValueChange = {
-                viewModel.initialName.value = it
-            },
-            enabled = false,
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth(0.95f)
-                .height(65.dp)
-                .padding(top = 5.dp, start = 20.dp, bottom = 5.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = Color.DarkGray,
-                unfocusedBorderColor = Color.Black)
-        )
-        MixingManDropdown(
-            viewModel,
-            false ,
-            viewModel.MixingManTypes.collectAsState().value ,
-            onSelect = {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            }
-        )
-        CuttingManDropDown(
-            viewModel,
-            false ,
-            viewModel.CuttingManTypes.collectAsState().value ,
-            onSelect = {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            }
-        )
-        OvenManDropdown(
-            viewModel,
-            false ,
-            viewModel.OvenManTypes.collectAsState().value ,
-            onSelect = {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            }
-        )
-        PackingSupervisorDropdown(
-            viewModel,
-            false ,
-            viewModel.PackingSupervisorTypes.collectAsState().value ,
-            onSelect = {
-                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            }
-        )
-
-        Row(
-            modifier = Modifier.padding(top = 5.dp, start = 20.dp)
+        Column(
+            modifier=Modifier.verticalScroll(rememberScrollState())
         ) {
-            OutlinedTextField(
-                value = textState.value,
-                onValueChange = {
-                    textState.value = it
-                },
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null)
-                },
-                placeholder = { Text(text = "Mixing Labour")}
-            )
-            OutlinedButton(
-                modifier = Modifier
-                    .width(67.dp)
-                    .height(57.dp)
-                    .padding(start = 5.dp),
-                shape = RoundedCornerShape(5.dp),
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(SplashGreen),
-                border = BorderStroke(0.5.dp, Color.LightGray),
-                elevation = ButtonDefaults.buttonElevation(20.dp)
+            FloorManagerDropdown(
+                viewModel,
+                false,
+                viewModel.floorTypes.collectAsState().value,
+                onSelect = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    //viewModel.selectedPincode.value = it
+                })
 
+            ProductsDropdown(
+                viewModel,
+                false ,
+                viewModel.productTypes.collectAsState().value ,
+                onSelect = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+
+            OutlinedTextField(
+                value = viewModel.initialName.value,
+                onValueChange = {
+                    viewModel.initialName.value = it
+                },
+                enabled = false,
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxWidth(0.95f)
+                    .height(65.dp)
+                    .padding(top = 5.dp, start = 20.dp, bottom = 5.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color.DarkGray,
+                    unfocusedBorderColor = Color.Black)
+            )
+            MixingManDropdown(
+                viewModel,
+                false ,
+                viewModel.MixingManTypes.collectAsState().value ,
+                onSelect = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+            CuttingManDropDown(
+                viewModel,
+                false ,
+                viewModel.CuttingManTypes.collectAsState().value ,
+                onSelect = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+            OvenManDropdown(
+                viewModel,
+                false ,
+                viewModel.OvenManTypes.collectAsState().value ,
+                onSelect = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+            PackingSupervisorDropdown(
+                viewModel,
+                false ,
+                viewModel.PackingSupervisorTypes.collectAsState().value ,
+                onSelect = {
+                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                }
+            )
+
+//        Row(
+//            modifier = Modifier.padding(top = 5.dp, start = 20.dp)
+//        ) {
+//            OutlinedTextField(
+//                value = textState.value,
+//                onValueChange = {
+//                    textState.value = it
+//                },
+//                leadingIcon = {
+//                    Icon(Icons.Default.Search, contentDescription = null)
+//                },
+//                placeholder = { Text(text = "Mixing Labour")}
+//            )
+//            OutlinedButton(
+//                modifier = Modifier
+//                    .width(67.dp)
+//                    .height(57.dp)
+//                    .padding(start = 5.dp),
+//                shape = RoundedCornerShape(5.dp),
+//                onClick = { },
+//                colors = ButtonDefaults.buttonColors(SplashGreen),
+//                border = BorderStroke(0.5.dp, Color.LightGray),
+//                elevation = ButtonDefaults.buttonElevation(20.dp)
+//
+//            ) {
+//                Icon(
+//                    Icons.Filled.Add,
+//                    contentDescription = "Add",
+//                    modifier = Modifier.fillMaxSize()
+//                )
+//            }
+//        }
+            Row(
+                modifier = Modifier
+                    .padding(top = 15.dp, start = 15.dp, end = 15.dp)
+                    .fillMaxWidth()
             ) {
-                Icon(
-                    Icons.Filled.Add,
-                    contentDescription = "Add",
-                    modifier = Modifier.fillMaxSize()
+                OutlinedTextField(
+                    value = viewModel.mixingLabourName.value,
+                    onValueChange = { viewModel.mixingLabourName.value = it },
+                    //label = { Text("your mobile number") },
+                    placeholder = { Text("Search Packing Labour", color = Color.Gray) },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color.Gray,
+                        unfocusedBorderColor = Color.Gray
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(end = 5.dp),
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .height(32.dp)
+                                .width(32.dp),
+                            tint = Color.LightGray
+                        )
+                    },
                 )
+
+                Button(
+                    contentPadding = PaddingValues(0.dp),
+                    onClick = {
+                        viewModel.addMixingLabourToList()
+                    },
+                    colors = ButtonDefaults.buttonColors(SplashGreen),
+                    modifier = Modifier
+                        .height(55.dp)
+                        .width(55.dp)
+                        .align(Alignment.CenterVertically),
+                    shape = RoundedCornerShape(5.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        tint = Color.White,
+                        contentDescription = "",
+                        // modifier = Modifier.padding(end = 8.dp)
+                    )
+                    //Icon(Icons.Filled.Add, "add")
+                }
+
+            }//row
+
+            for ((index, workersName) in viewModel.mixingLabourList.withIndex() ) {
+
+//                    var value by remember(workersName) {
+//                        mutableStateOf(workersName)
+//                    }
+
+                Row(modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                ) {
+                    Text(
+                        text = "${index+1}. $workersName",
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically),
+                        //   .wrapContentSize(),
+                        fontSize = 17.sp,
+                        color = Color.DarkGray,
+                        // fontWeight = FontWeight.Bold
+                    )
+                    IconButton(onClick = {
+                        //  viewModel.showHidepasswordText.value = false
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.delete_labour_svg),
+                            contentDescription = null,
+                            tint = LogoutRed,
+                            modifier = Modifier
+                                .width(screenWidth * 0.15f)
+                                .align(Alignment.CenterVertically)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = {
+                                        viewModel.mixingLabourList.removeAt(index)
+                                    },
+                                    role = Role.Image
+                                )
+                        )
+                    }
+
+                }
             }
         }
+
+
 
 //        SearchScreen(textState)
 //        ItemList(state = textState)

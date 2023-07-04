@@ -1,6 +1,7 @@
 package com.jaya.app.jayamixing.presentation.viewmodels
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.SavedStateHandle
@@ -39,6 +40,8 @@ class AddProductViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ):ViewModel() {
     val addProductBack = mutableStateOf<MyDialog?>(null)
+    var mixingLabourList= mutableStateListOf<String>()
+    var mixingLabourName = mutableStateOf("")
 
     private val _productTypes = MutableStateFlow(emptyList<ProductType>())
     val productTypes = _productTypes.asStateFlow()
@@ -94,6 +97,11 @@ class AddProductViewModel @Inject constructor(
         getMixingLabourTypes()
 //        baseViewModel?.userName = initialName.value
 //        Log.d("Username from BaseViewModel", ": ${baseViewModel?.userName}")
+    }
+
+    fun addMixingLabourToList(){
+        mixingLabourList.add(mixingLabourName.value)
+        mixingLabourName.value=""
     }
 
 
