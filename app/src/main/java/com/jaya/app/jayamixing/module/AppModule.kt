@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
+import com.jaya.app.core.domain.repositories.AddProductRepository
 import com.jaya.app.core.domain.repositories.DashboardRepository
 import com.jaya.app.core.domain.repositories.LoginRepository
 import com.jaya.app.core.domain.repositories.OtpRepository
@@ -15,6 +16,7 @@ import com.jaya.app.core.helpers.Info
 import com.jaya.app.jayamixing.application.JayaMixingApp
 import com.jaya.app.jayamixing.helpers_impl.AppInfo
 import com.jaya.app.jayamixing.helpers_impl.AppStoreImpl
+import com.jaya.app.jayamixing.repository_impl.AddProductRepositoryImpl
 import com.jaya.app.jayamixing.repository_impl.DashboardRepositoryImpl
 import com.jaya.app.jayamixing.repository_impl.LoginRepositoryImpl
 import com.jaya.app.jayamixing.repository_impl.OtpRepositoryImpl
@@ -27,6 +29,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -64,6 +69,11 @@ interface AppModule {
         @Provides
         fun provideDataStorePreferences(@ApplicationContext appContext: Context): DataStore<Preferences> = appContext.dataStore
 
+        @Provides
+        @Singleton
+        fun provideGlobalCoroutineScope(): CoroutineScope =
+            CoroutineScope(context = Dispatchers.Main + SupervisorJob())
+
     }
 
     @Binds
@@ -84,4 +94,6 @@ interface AppModule {
     @Binds
     fun bindDashboardRepository(impl: DashboardRepositoryImpl): DashboardRepository
 
+    @Binds
+    fun bindAddProductRepository(impl: AddProductRepositoryImpl): AddProductRepository
 }

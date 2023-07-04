@@ -19,6 +19,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.dimensionResource
@@ -185,6 +186,7 @@ fun upToBottom() = slideInVertically(
     targetOffsetY = {it},
     animationSpec = animationSpec()
 ) + fadeOut(animationSpec())
+
 
 
 @OptIn(ExperimentalAnimationApi::class)

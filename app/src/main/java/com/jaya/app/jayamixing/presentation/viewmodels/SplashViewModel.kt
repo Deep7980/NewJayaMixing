@@ -14,27 +14,49 @@ import com.jaya.app.core.utils.AppNavigator
 import com.jaya.app.jayamixing.extensions.MyDialog
 import com.jaya.app.jayamixing.extensions.castValueToRequiredTypes
 import com.jaya.app.jayamixing.helpers_impl.SavableMutableState
+import com.jaya.app.jayamixing.utility.AppConnectivity
 import com.jaya.app.jayamixing.utility.UiData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import java.util.Timer
 import javax.inject.Inject
+import kotlin.concurrent.schedule
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     private val splashUseCases: SplashUseCases,
+    private val connectivity: AppConnectivity,
     private val pref: AppStore,
     savedStateHandle: SavedStateHandle
 ):ViewModel() {
+
+    val splashAnimation = mutableStateOf(false)
+
+    val connectivityStatus = connectivity.connectivityStatusFlow
 
     val versionUpdateDialog = mutableStateOf<MyDialog?>(null)
     val versionUpdateLink = SavableMutableState<String?>(UiData.AppStoreLink,savedStateHandle,null)
 
     init {
-        getBaseUrl()
+        viewModelScope.launch {
+            splashAnimation()
+            Timer().schedule(2000){
+               getBaseUrl()
+            }
+        }
+
+    }
+
+    private suspend fun splashAnimation() {
+        splashAnimation.value = true
+        delay(500L)
+        splashAnimation.value = false
     }
 
     private fun getBaseUrl() {

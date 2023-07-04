@@ -58,7 +58,7 @@ class SplashUseCases @Inject constructor(
                                 if(appStore.isLoggedIn()) {
                                     emit(DataEntry(type = EmitType.Navigate,value = Destination.Dashboard))
                                 } else {
-                                    emit(DataEntry(type = EmitType.Navigate,value = Destination.Dashboard))
+                                    emit(DataEntry(type = EmitType.Navigate,value = Destination.Login))
                                 }
                             }
                         }

@@ -22,4 +22,6 @@ class BaseViewModel @Inject constructor(
     var storedLoginPassword = mutableStateOf("")
     var versionCode= mutableStateOf(0)
     var statusBarColor= mutableStateOf(Primary)
+    var getStartedSelectedPlant = mutableStateOf("")
+    var userName :String=""
 }

@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.jaya.app.core.common.Destination
 import com.jaya.app.core.utils.NavigationIntent
+import com.jaya.app.jayamixing.presentation.ui.screen.AddProductScreen
 import com.jaya.app.jayamixing.presentation.ui.screen.DashboardScreen
 import com.jaya.app.jayamixing.presentation.ui.screen.LoginScreen
 import com.jaya.app.jayamixing.presentation.ui.screen.SplashScreen
@@ -46,9 +47,9 @@ fun MainNavGraph(
         composable(destination = Destination.Dashboard) {
             DashboardScreen(baseViewModel)
         }
-//        composable(destination = Destination.AddProduct) {
-//            AddProductScreen(baseViewModel)
-//        }
+        composable(destination = Destination.AddProduct) {
+            AddProductScreen(baseViewModel = baseViewModel)
+        }
 //        composable(destination = Destination.CaptureVideo) {
 //            VideoCaptureScreen(baseViewModel)
 //        }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -59,14 +60,14 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
+            .padding(bottom = 16.dp, start = 16.dp, end = 16.dp).imePadding(),
     ) {
 
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(modifier = Modifier.wrapContentSize()) {
+            Column(modifier = Modifier.wrapContentSize().imePadding()) {
                 Image(
                     painter = painterResource(R.drawable.cropped_logo),
                     contentDescription = "Logo",
@@ -127,7 +128,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .focusRequester(focusRequester)
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                        .padding(horizontal = 10.dp, vertical = 5.dp).imePadding(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Done,
@@ -157,7 +158,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .focusRequester(focusRequester)
                         .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                        .padding(horizontal = 10.dp, vertical = 5.dp).imePadding(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Done,
@@ -203,7 +204,7 @@ fun LoginScreen(
                     modifier = Modifier
                         .padding(horizontal = 10.dp, vertical = 25.dp)
                         .fillMaxWidth()
-                        .height(53.dp),
+                        .height(53.dp).imePadding(),
                     colors = ButtonDefaults.buttonColors(Color.Black)
                 ) {
                     if (!viewModel.loadingg.value){
