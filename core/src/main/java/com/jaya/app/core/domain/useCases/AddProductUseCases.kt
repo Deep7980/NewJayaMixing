@@ -197,34 +197,15 @@ class AddProductUseCases @Inject constructor(
         }
     }
 
-    fun getMixingLabourTypes() = flow{
-        emit(DataEntry(EmitType.Loading,true))
-        when(val response = addProductRepository.getMixingLabourTypes()){
-            is Resource.Success ->{
-                emit(DataEntry(EmitType.Loading,false))
-                response.data?.apply {
-                    when(status){
-                        true ->{
-                            emit(DataEntry(EmitType.MIXING_LABOUR_LIST,mixing_labour_list))
-                        }
-                        false ->{
-                            emit(DataEntry(EmitType.BackendError,message))
-                        }
-                    }
-                }
-            }
-            is Resource.Error -> {
-                handleFailedResponse(
-                    response = response,
-                    message = response.message,
-                    emitType = EmitType.NetworkError
-                )
-            }
-
-            else -> {
-
-            }
+    fun getMixingLabourTypes(query:String) = flow{
+        val searchMixingLabours = addProductRepository.getMixingLabourTypes(query)
+        if(searchMixingLabours.isNotEmpty()){
+            emit(DataEntry(EmitType.MIXING_LABOUR_LIST,searchMixingLabours))
+        }else{
+            emit(DataEntry(EmitType.NO_MIXING_LABOUR,null))
         }
     }
+
+
 
 }

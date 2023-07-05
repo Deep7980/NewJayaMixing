@@ -1,9 +1,12 @@
 package com.jaya.app.jayamixing.presentation.viewmodels
 
 import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,6 +44,9 @@ class AddProductViewModel @Inject constructor(
     private val appNavigator: AppNavigator,
     savedStateHandle: SavedStateHandle
 ):ViewModel() {
+
+    var MixingLabourSearchQuery by mutableStateOf(TextFieldValue())
+        private set
     val addProductBack = mutableStateOf<MyDialog?>(null)
     var mixingLabourList= mutableStateListOf<String>()
     var cuttingLabourList= mutableStateListOf<String>()
@@ -105,15 +111,14 @@ class AddProductViewModel @Inject constructor(
         getCuttingManTypes()
         getOvenManTypes()
         getPackingSupervisorTypes()
-        getMixingLabourTypes()
+        //getMixingLabourTypes()
 //        baseViewModel?.userName = initialName.value
 //        Log.d("Username from BaseViewModel", ": ${baseViewModel?.userName}")
     }
 
     fun addMixingLabourToList(){
-        if(mixingLabourTextName.value.isNotEmpty()){
-            mixingLabourList.add(mixingLabourTextName.value)
-            mixingLabourTextName.value=""
+        if(MixingLabourSearchQuery.text.isNotEmpty()){
+            mixingLabourList.add(MixingLabourSearchQuery.text)
         }
     }
 
@@ -124,6 +129,8 @@ class AddProductViewModel @Inject constructor(
             cuttingLabourName.value=""
         }
     }
+
+
 
 
     fun onBackDialog() {
@@ -310,19 +317,18 @@ class AddProductViewModel @Inject constructor(
     }
 
     @OptIn(FlowPreview::class)
-    fun getMixingLabourTypes() {
-        addProductUseCases.getMixingLabourTypes()
+    fun getMixingLabourTypes(query:TextFieldValue) {
+        Log.d("TESTING", "loadData: $query")
+        MixingLabourSearchQuery=query
+        addProductUseCases.getMixingLabourTypes(query.text)
             .flowOn(Dispatchers.IO)
-            .debounce(5000L)
+            .debounce(500L)
             .onEach {
                 when(it.type){
                     EmitType.MIXING_LABOUR_LIST ->{
                         it.value?.castListToRequiredTypes<MixingLabourList>()?.let { mixingLabour ->
                             _mixingLabourList.update { mixingLabour }
                            // mixingLabourTextName.value = mixingLabourName
-                            mixingLabour.forEach { it->
-                                Log.d("MixingLabourNames", "Mixing Labour Names: ${it.name}")
-                            }
                             //Log.d("MixingLabourList", "Mixing Labour List: ${mixingLabour.toList()}")
                         }
 //
@@ -335,7 +341,9 @@ class AddProductViewModel @Inject constructor(
                             }
                         }
                     }
-                    else -> {}
+                    else -> {
+
+                    }
                 }
             }.launchIn(viewModelScope)
     }

@@ -3,6 +3,7 @@ package com.jaya.app.core.domain.repositories
 import com.jaya.app.core.common.Resource
 import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
+import com.jaya.app.core.domain.model.MixingLabourList
 import com.jaya.app.core.domain.model.MixingLabourModel
 import com.jaya.app.core.domain.model.MixingManTypesModel
 import com.jaya.app.core.domain.model.OvenManTypesModel
@@ -22,5 +23,5 @@ interface AddProductRepository {
 
     suspend fun getPackingSupervisorTypes(): Resource<PackingSupervisorTypesModel>
 
-    suspend fun getMixingLabourTypes(): Resource<MixingLabourModel>
+    suspend fun getMixingLabourTypes(query:String): List<MixingLabourList>
 }

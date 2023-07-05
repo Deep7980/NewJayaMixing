@@ -6,6 +6,7 @@ import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerType
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
 import com.jaya.app.core.domain.model.GetOtpModel
+import com.jaya.app.core.domain.model.MixingLabourList
 import com.jaya.app.core.domain.model.MixingLabourModel
 import com.jaya.app.core.domain.model.MixingManTypesModel
 import com.jaya.app.core.domain.model.OvenManTypesModel
@@ -55,5 +56,5 @@ interface MyApiList {
     suspend fun getPackingSupervisorTypes(): PackingSupervisorTypesModel
 
     @GET("ea14cfe83c330e6dd9ed")
-    suspend fun getMixingLabourDetails(): MixingLabourModel
+    suspend fun getMixingLabourDetails(): List<MixingLabourList>
 }

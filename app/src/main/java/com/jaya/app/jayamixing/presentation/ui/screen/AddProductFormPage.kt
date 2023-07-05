@@ -375,11 +375,13 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     .fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = viewModel.mixingLabourTextName.value,
-                    onValueChange = {textValue->
-//                        viewModel.getMixingLabourTypes(textValue)
-                        viewModel.mixingLabourTextName.value=textValue
-                    },
+//                    value = viewModel.mixingLabourTextName.value,
+//                    onValueChange = {textValue->
+////                        viewModel.getMixingLabourTypes(textValue)
+//                        viewModel.mixingLabourTextName.value=textValue
+//                    },
+                    value = viewModel.MixingLabourSearchQuery,
+                    onValueChange = viewModel::getMixingLabourTypes,
                     //label = { Text("your mobile number") },
                     placeholder = { Text("Mixing Labour", color = Color.Gray) },
                     colors = TextFieldDefaults.outlinedTextFieldColors(

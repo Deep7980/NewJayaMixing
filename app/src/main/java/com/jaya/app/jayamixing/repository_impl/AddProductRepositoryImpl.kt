@@ -3,6 +3,7 @@ package com.jaya.app.jayamixing.repository_impl
 import com.jaya.app.core.common.Resource
 import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
+import com.jaya.app.core.domain.model.MixingLabourList
 import com.jaya.app.core.domain.model.MixingLabourModel
 import com.jaya.app.core.domain.model.MixingManTypesModel
 import com.jaya.app.core.domain.model.OvenManTypesModel
@@ -63,11 +64,19 @@ class AddProductRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getMixingLabourTypes(): Resource<MixingLabourModel> {
-        return try {
-            Resource.Success(myApiList.getMixingLabourDetails())
-        } catch (ex: Exception) {
-            Resource.Error(message = ex.message)
-        }
+    override suspend fun getMixingLabourTypes(query:String): List<MixingLabourList> {
+        if (query.isEmpty() || query.isBlank()) return emptyList()
+
+        val results = myApiList.getMixingLabourDetails() ?: return emptyList()
+
+        return results.filter {
+            if (query.length in 2..3) {
+                query.trim()
+                    .contains(Regex("(^[a-zA-Z]*+)|([0-9]{2}$)", option = RegexOption.COMMENTS))
+            } else {
+                it.name.lowercase().replace(Regex("[^a-zA-Z\\d:]"), "")
+                    .contains(Regex(query.lowercase().trim()))
+            }
+        }.toList()
     }
 }
