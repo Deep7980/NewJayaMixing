@@ -25,8 +25,10 @@ import com.jaya.app.jayamixing.extensions.castValueToRequiredTypes
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -41,7 +43,12 @@ class AddProductViewModel @Inject constructor(
 ):ViewModel() {
     val addProductBack = mutableStateOf<MyDialog?>(null)
     var mixingLabourList= mutableStateListOf<String>()
-    var mixingLabourName = mutableStateOf("")
+    var cuttingLabourList= mutableStateListOf<String>()
+    var mixingLabourTextName = mutableStateOf("")
+    var cuttingLabourName = mutableStateOf("")
+
+    var leftAddedKG = mutableStateOf("")
+    var brokenAddedKG = mutableStateOf("")
 
     private val _productTypes = MutableStateFlow(emptyList<ProductType>())
     val productTypes = _productTypes.asStateFlow()
@@ -62,11 +69,13 @@ class AddProductViewModel @Inject constructor(
     var shiftBBtnBackColor = mutableStateOf(Color.White)
     var shiftBTxtColor = mutableStateOf(Color.DarkGray)
 
-    var isShiftCselected = mutableStateOf(false)
+    var isShiftCselected = mutableStateOf(true)
     var shiftCBtnBackColor = mutableStateOf(Color.White)
     var shiftCTxtColor = mutableStateOf(Color.DarkGray)
 
     var initialName = mutableStateOf("Ramesh Saha")
+    var productDesc = mutableStateOf("")
+    val uploadImageState = mutableStateOf(false)
 
     private val _floorTypesList = MutableStateFlow(emptyList<FloorManagerType>())
     val floorTypes = _floorTypesList.asStateFlow()
@@ -85,6 +94,8 @@ class AddProductViewModel @Inject constructor(
 
     private val _mixingLabourList = MutableStateFlow(emptyList<MixingLabourList>())
     val MixingLabourTypes = _mixingLabourList.asStateFlow()
+
+    //val mixingLabourListNames = mutableStateOf("")
     //val baseViewModel:BaseViewModel?=null
 
     init {
@@ -100,8 +111,18 @@ class AddProductViewModel @Inject constructor(
     }
 
     fun addMixingLabourToList(){
-        mixingLabourList.add(mixingLabourName.value)
-        mixingLabourName.value=""
+        if(mixingLabourTextName.value.isNotEmpty()){
+            mixingLabourList.add(mixingLabourTextName.value)
+            mixingLabourTextName.value=""
+        }
+    }
+
+    fun addCuttingLabourToList(){
+
+        if(cuttingLabourName.value.isNotEmpty()){
+            cuttingLabourList.add(cuttingLabourName.value)
+            cuttingLabourName.value=""
+        }
     }
 
 
@@ -121,6 +142,14 @@ class AddProductViewModel @Inject constructor(
         appNavigator.tryNavigateTo(
             route = Destination.Dashboard(),
             // popUpToRoute = Destination.Dashboard(),
+            isSingleTop = true,
+            inclusive = true
+        )
+    }
+
+    fun confirmSubmit(){
+        appNavigator.tryNavigateTo(
+            route = Destination.Completed(),
             isSingleTop = true,
             inclusive = true
         )
@@ -280,16 +309,23 @@ class AddProductViewModel @Inject constructor(
             }.launchIn(viewModelScope)
     }
 
-    private fun getMixingLabourTypes() {
+    @OptIn(FlowPreview::class)
+    fun getMixingLabourTypes() {
         addProductUseCases.getMixingLabourTypes()
             .flowOn(Dispatchers.IO)
+            .debounce(5000L)
             .onEach {
                 when(it.type){
                     EmitType.MIXING_LABOUR_LIST ->{
                         it.value?.castListToRequiredTypes<MixingLabourList>()?.let { mixingLabour ->
                             _mixingLabourList.update { mixingLabour }
-                            Log.d("MixingLabourList", "Mixing Labour List: ${mixingLabour.toList()}")
+                           // mixingLabourTextName.value = mixingLabourName
+                            mixingLabour.forEach { it->
+                                Log.d("MixingLabourNames", "Mixing Labour Names: ${it.name}")
+                            }
+                            //Log.d("MixingLabourList", "Mixing Labour List: ${mixingLabour.toList()}")
                         }
+//
                     }
 
                     EmitType.NetworkError -> {

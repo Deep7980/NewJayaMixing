@@ -6,5 +6,6 @@ object AppRoutes {
     const val OTP = "otp"
     const val DASHBOARD = "dashboard"
     const val ADD_PRODUCT = "add_product"
+    const val COMPLETED = "completed"
 //    const val CAPTURE_VIDEO = "capture_video"
 }

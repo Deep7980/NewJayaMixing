@@ -24,6 +24,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -69,7 +70,7 @@ class DashboardViewModel @Inject constructor(
     fun onBackDialog() {
         dashboardBack.value = MyDialog(
             data = DialogData(
-                title = "Jaya Mixing Supervisor App",
+                title = "Jaya Mixing Supervisor",
                 message = "Are you sure you want to exit ?",
                 positive = "Yes",
                 negative = "No",
@@ -89,15 +90,16 @@ class DashboardViewModel @Inject constructor(
 
     fun onLogoutFromDashboard() {
         viewModelScope.launch {
-            dashBoardUseCases.logOutFromDashboard().collect {
+            dashBoardUseCases.logOutFromDashboard().debounce(500L).collect {
                 when (it.type) {
                     EmitType.Navigate -> {
                         it.value?.apply {
 
                             castValueToRequiredTypes<Destination.NoArgumentsDestination>()?.let { destination ->
+
                                 appNavigator.tryNavigateTo(
                                     destination(),
-                                    popUpToRoute = Destination.Login(),
+                                    popUpToRoute = Destination.Dashboard(),
                                     isSingleTop = true,
                                     inclusive = true
                                 )

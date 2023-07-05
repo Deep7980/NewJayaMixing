@@ -7,10 +7,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jaya.app.core.common.Destination
+import com.jaya.app.core.common.DialogData
 import com.jaya.app.core.common.EmitType
 import com.jaya.app.core.domain.useCases.LoginUseCases
 import com.jaya.app.core.helpers.AppStore
 import com.jaya.app.core.utils.AppNavigator
+import com.jaya.app.jayamixing.extensions.MyDialog
 import com.jaya.app.jayamixing.extensions.castValueToRequiredTypes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +39,45 @@ class LoginViewModel @Inject constructor(
     var color = mutableStateOf(Color.Gray)
     var loadingButton = mutableStateOf(true)
     var loadingg = mutableStateOf(false)
+    var passwordFieldcolor = mutableStateOf(Color.Gray)
+    var showHidepasswordText = mutableStateOf(false)
+//    val dashboardBack = mutableStateOf<MyDialog?>(null)
 
 
+//    fun onBackDialog() {
+//        dashboardBack.value = MyDialog(
+//            data = DialogData(
+//                title = "Jaya Mixing Supervisor",
+//                message = "Are you sure you want to exit ?",
+//                positive = "Yes",
+//                negative = "No",
+//            )
+//        )
+//        handleDialogEvents()
+//    }
+//
+//    private fun handleDialogEvents() {
+//        dashboardBack.value?.onConfirm = {
+//
+//        }
+//        dashboardBack.value?.onDismiss = {
+//            dashboardBack.value?.setState(MyDialog.Companion.State.DISABLE)
+//        }
+//    }
+
+
+//    init{
+//        decideButtonState()
+//    }
+    fun decideButtonState():Boolean{
+        val loginBtnState = mutableStateOf(false)
+        if(emailText.value.isNotEmpty() && password.value.isNotEmpty()){
+            loginBtnState.value=true
+        }else{
+            loginBtnState.value=false
+        }
+        return loginBtnState.value
+    }
 
     fun getOtp() {
         // viewModelScope.launch {

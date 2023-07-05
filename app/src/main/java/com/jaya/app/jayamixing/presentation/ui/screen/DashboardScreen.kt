@@ -285,7 +285,7 @@ fun BodyContentComponent(
 
 
             
-            dashboardDetails(viewModel)
+            DashboardDetails(viewModel)
         }
 
     }
@@ -421,7 +421,7 @@ fun DrawerContentComponent(
 }
 
 @Composable
-fun dashboardDetails(viewModel: DashboardViewModel){
+fun DashboardDetails(viewModel: DashboardViewModel){
 
     if(!viewModel.quotationsLoading){
         LazyColumn(){
@@ -459,7 +459,7 @@ fun dashboardDetails(viewModel: DashboardViewModel){
                                     modifier = Modifier.padding(top = 20.dp, start = 20.dp)
                                 )
                                 Text(
-                                    text = "${item.timeStamp}",
+                                    text = item.timeStamp,
                                     fontWeight = FontWeight.Normal,
                                     modifier = Modifier.padding(top = 22.dp, start = 65.dp)
                                 )
@@ -476,7 +476,7 @@ fun dashboardDetails(viewModel: DashboardViewModel){
                                 )
                             }
                             Text(
-                                text = "${item.productName}",
+                                text = item.productName,
                                 fontSize = 17.sp,
                                 modifier= Modifier
                                     .fillMaxWidth(1f)

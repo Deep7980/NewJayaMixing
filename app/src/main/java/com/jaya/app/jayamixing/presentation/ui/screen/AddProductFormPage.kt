@@ -1,11 +1,19 @@
 package com.jaya.app.jayamixing.presentation.ui.screen
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -41,6 +50,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -50,16 +62,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -80,12 +97,15 @@ import com.jaya.app.jayamixing.ui.theme.LogoutRed
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
 import java.util.Locale
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewModel) {
 
     val context = LocalContext.current
     val textState = remember { mutableStateOf(TextFieldValue("")) }
+    val mCheckedState = remember{ mutableStateOf(false)}
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -351,14 +371,17 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 //        }
             Row(
                 modifier = Modifier
-                    .padding(top = 15.dp, start = 15.dp, end = 15.dp)
+                    .padding(top = 15.dp, start = 20.dp, end = 15.dp)
                     .fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = viewModel.mixingLabourName.value,
-                    onValueChange = { viewModel.mixingLabourName.value = it },
+                    value = viewModel.mixingLabourTextName.value,
+                    onValueChange = {textValue->
+//                        viewModel.getMixingLabourTypes(textValue)
+                        viewModel.mixingLabourTextName.value=textValue
+                    },
                     //label = { Text("your mobile number") },
-                    placeholder = { Text("Search Packing Labour", color = Color.Gray) },
+                    placeholder = { Text("Mixing Labour", color = Color.Gray) },
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = Color.Gray,
                         unfocusedBorderColor = Color.Gray
@@ -388,7 +411,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     colors = ButtonDefaults.buttonColors(SplashGreen),
                     modifier = Modifier
                         .height(55.dp)
-                        .width(55.dp)
+                        .width(53.dp)
                         .align(Alignment.CenterVertically),
                     shape = RoundedCornerShape(5.dp),
                 ) {
@@ -403,19 +426,15 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
             }//row
 
-            for ((index, workersName) in viewModel.mixingLabourList.withIndex() ) {
-
-//                    var value by remember(workersName) {
-//                        mutableStateOf(workersName)
-//                    }
+            for ((index, mixingLaboursName) in viewModel.mixingLabourList.withIndex() ) {
 
                 Row(modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp, top = 10.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight()
+
                 ) {
                     Text(
-                        text = "${index+1}. $workersName",
+                        text = "${index+1}. $mixingLaboursName",
                         modifier = Modifier
                             .weight(1f)
                             .align(Alignment.CenterVertically),
@@ -447,12 +466,409 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
                 }
             }
+
+            Row(
+                modifier = Modifier
+                    .padding(top = 15.dp, start = 20.dp, end = 15.dp)
+                    .fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = viewModel.cuttingLabourName.value,
+                    onValueChange = { viewModel.cuttingLabourName.value = it },
+                    //label = { Text("your mobile number") },
+                    placeholder = { Text("Cutting Labour", color = Color.Gray) },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color.Gray,
+                        unfocusedBorderColor = Color.Gray
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(end = 5.dp),
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .height(32.dp)
+                                .width(32.dp),
+                            tint = Color.LightGray
+                        )
+                    },
+                )
+
+                Button(
+                    contentPadding = PaddingValues(0.dp),
+                    onClick = {
+                        viewModel.addCuttingLabourToList()
+                    },
+                    colors = ButtonDefaults.buttonColors(SplashGreen),
+                    modifier = Modifier
+                        .height(55.dp)
+                        .width(53.dp)
+                        .align(Alignment.CenterVertically),
+                    shape = RoundedCornerShape(5.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        tint = Color.White,
+                        contentDescription = "",
+                        // modifier = Modifier.padding(end = 8.dp)
+                    )
+                    //Icon(Icons.Filled.Add, "add")
+                }
+
+            }
+
+            for ((index, cuttingLaboursName) in viewModel.cuttingLabourList.withIndex() ) {
+
+                Row(modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                    .fillMaxWidth()
+
+                ) {
+                    Text(
+                        text = "${index+1}. $cuttingLaboursName",
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically),
+                        //   .wrapContentSize(),
+                        fontSize = 17.sp,
+                        color = Color.DarkGray,
+                        // fontWeight = FontWeight.Bold
+                    )
+                    IconButton(onClick = {
+                        //  viewModel.showHidepasswordText.value = false
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.delete_labour_svg),
+                            contentDescription = null,
+                            tint = LogoutRed,
+                            modifier = Modifier
+                                .width(screenWidth * 0.15f)
+                                .align(Alignment.CenterVertically)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = {
+                                        viewModel.cuttingLabourList.removeAt(index)
+                                    },
+                                    role = Role.Image
+                                )
+                        )
+                    }
+
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp, top = 15.dp, bottom = 10.dp)
+                    .fillMaxWidth(1f)
+
+            ) {
+
+                Text(
+                    text = "Broken and Left Dough Used",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = 10.dp)
+                )
+                Switch(
+                    checked = mCheckedState.value,
+                    onCheckedChange = {
+                        mCheckedState.value = it
+                    },
+                    modifier = Modifier
+                        .padding(start = 50.dp, end = 10.dp, bottom = 20.dp)
+
+                        .scale(scale = 1.5f),
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = SplashGreen,
+                        uncheckedThumbColor =  Color.White,
+                        uncheckedTrackColor =  Color.Gray
+                    )
+                    )
+            }
+
+            if(mCheckedState.value){
+                Card(
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 20.dp),
+                    shape = RoundedCornerShape(5.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .fillMaxWidth(0.90f)
+                        .height(80.dp)
+                        .padding(bottom = 20.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .background(AppBarYellow)
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        ) {
+                            Text(
+                                text = "Left Dough Added",
+                                color = Color.DarkGray,
+                                fontSize = 16.sp,
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(
+                                        bottom = 10.dp,
+                                        end = 10.dp,
+                                        top = 10.dp,
+                                        start = 15.dp
+                                    ),
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        ) {
+
+                            TextField(
+                                value = viewModel.leftAddedKG.value,
+                                onValueChange ={
+                                    if(it.length <=5)
+                                        viewModel.leftAddedKG.value = it
+                                },
+                                colors = TextFieldDefaults.textFieldColors(
+                                    containerColor = Color.White,
+                                    textColor = Color.Black,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .padding(start = 10.dp),
+                                singleLine = true
+                            )
+                            Text(
+                                text = "Kgs",
+                                color = Color.DarkGray,
+                                fontSize = 17.sp,
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(start = 15.dp),
+                                textAlign = TextAlign.Center,
+                                //fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }//row
+                }//card
+
+
+                Card(
+                    border = BorderStroke(1.dp, Color.LightGray),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 20.dp),
+                    shape = RoundedCornerShape(5.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .fillMaxWidth(0.90f)
+                        .height(80.dp)
+                        .padding(bottom = 20.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .background(AppBarYellow)
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        ) {
+                            Text(
+                                text = "Broken Added",
+                                color = Color.DarkGray,
+                                fontSize = 16.sp,
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(
+                                        bottom = 10.dp,
+                                        end = 10.dp,
+                                        top = 10.dp,
+                                        start = 15.dp
+                                    ),
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                        ) {
+
+                            TextField(
+                                value = viewModel.brokenAddedKG.value,
+                                onValueChange ={
+                                    if(it.length <=5)
+                                        viewModel.brokenAddedKG.value = it
+                                },
+                                colors = TextFieldDefaults.textFieldColors(
+                                    containerColor = Color.White,
+                                    textColor = Color.Black,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .padding(start = 10.dp),
+                                singleLine = true
+                            )
+                            Text(
+                                text = "Kgs",
+                                color = Color.DarkGray,
+                                fontSize = 17.sp,
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .padding(start = 15.dp),
+                                textAlign = TextAlign.Center,
+                                //fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }//row
+                }
+                OutlinedTextField(
+                    value = viewModel.productDesc.value,
+                    onValueChange = {
+                        viewModel.productDesc.value = it
+                    },
+                    placeholder = { Text(text = "Products", textAlign = TextAlign.Center)},
+                    modifier = Modifier
+                        .fillMaxWidth(0.95f)
+                        .height(85.dp)
+                        .padding(top = 5.dp, start = 20.dp, bottom = 20.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color.DarkGray,
+                        unfocusedBorderColor = Color.Black)
+                )//card
+
+                Row(
+                    modifier = Modifier
+                        .padding(start = 20.dp, end = 20.dp, bottom = 40.dp, top = 5.dp)
+                        .fillMaxWidth(1f)
+
+                ){
+                    RequestContentPermission(viewModel)
+
+                }
+
+            }
+
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth(0.90f)
+                    .height(80.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 20.dp),
+                shape = RoundedCornerShape(5.dp),
+                onClick = {viewModel.confirmSubmit()},
+                colors = ButtonDefaults.buttonColors(SplashGreen),
+                border = BorderStroke(0.5.dp, Color.LightGray),
+                elevation = ButtonDefaults.buttonElevation(20.dp)
+
+            ) {
+                Text(
+                    text = "Confirm Now",
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            }
+
+
         }
 
 
 
 //        SearchScreen(textState)
 //        ItemList(state = textState)
+
+    }
+}
+
+
+@Composable
+fun RequestContentPermission(viewModel: AddProductViewModel) {
+    val uploadImageTextState = remember { mutableStateOf(true) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
+    val bitmap =  remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+
+    val launcher = rememberLauncherForActivityResult(contract =
+    ActivityResultContracts.GetContent()) { uri: Uri? ->
+        imageUri = uri
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Button(onClick = {
+            launcher.launch("image/*")
+            uploadImageTextState.value = false
+           //viewModel.uploadImageState.value = false
+        },
+            colors = ButtonDefaults.outlinedButtonColors(containerColor= Color.White),
+            modifier = Modifier
+                .padding(end = 20.dp)
+                .width(70.dp)
+                .height(50.dp)
+                .align(Alignment.CenterVertically),
+            border = BorderStroke(width = 1.dp,color = Color.DarkGray),
+            shape = RoundedCornerShape(5.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.camera),
+                contentDescription = "camera",
+                modifier = Modifier.fillMaxSize(1f)
+            )
+        }
+
+//        Spacer(modifier = Modifier.height(12.dp))
+        if(uploadImageTextState.value){
+            Text(text = "Upload Image", modifier = Modifier.padding(top = 15.dp))
+        }else{
+            imageUri?.let {
+                if (Build.VERSION.SDK_INT < 28) {
+                    bitmap.value = MediaStore.Images
+                        .Media.getBitmap(context.contentResolver,it)
+
+                } else {
+                    val source = ImageDecoder
+                        .createSource(context.contentResolver,it)
+                    bitmap.value = ImageDecoder.decodeBitmap(source)
+                }
+
+                bitmap.value?.let {  btm ->
+                    Image(bitmap = btm.asImageBitmap(),
+                        contentDescription =null,
+                        modifier = Modifier.size(120.dp))
+                }
+            }
+        }
+
+
 
     }
 }

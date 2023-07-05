@@ -48,4 +48,14 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        baseViewModel.connectivity.listeningNetworkState()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        baseViewModel.connectivity.stopListenNetworkState()
+    }
 }

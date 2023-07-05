@@ -5,7 +5,6 @@ import com.jaya.app.core.common.EmitType
 import com.jaya.app.core.common.Resource
 import com.jaya.app.core.common.handleFailedResponse
 import com.jaya.app.core.domain.repositories.AddProductRepository
-import com.jaya.app.core.domain.repositories.DashboardRepository
 import com.jaya.app.core.helpers.AppStore
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject

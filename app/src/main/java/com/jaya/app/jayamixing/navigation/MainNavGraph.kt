@@ -10,6 +10,7 @@ import com.jaya.app.core.utils.NavigationIntent
 import com.jaya.app.jayamixing.presentation.ui.screen.AddProductScreen
 import com.jaya.app.jayamixing.presentation.ui.screen.DashboardScreen
 import com.jaya.app.jayamixing.presentation.ui.screen.LoginScreen
+import com.jaya.app.jayamixing.presentation.ui.screen.RecordSubmissionScreen
 import com.jaya.app.jayamixing.presentation.ui.screen.SplashScreen
 import com.jaya.app.jayamixing.presentation.viewmodels.BaseViewModel
 import kotlinx.coroutines.channels.Channel
@@ -50,9 +51,9 @@ fun MainNavGraph(
         composable(destination = Destination.AddProduct) {
             AddProductScreen(baseViewModel = baseViewModel)
         }
-//        composable(destination = Destination.CaptureVideo) {
-//            VideoCaptureScreen(baseViewModel)
-//        }
+        composable(destination = Destination.Completed) {
+            RecordSubmissionScreen(baseViewModel)
+        }
 
 
     }

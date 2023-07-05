@@ -46,9 +46,10 @@ class SplashViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             splashAnimation()
-            Timer().schedule(2000){
-               getBaseUrl()
-            }
+            getBaseUrl()
+//            Timer().schedule(2000){
+//               getBaseUrl()
+//            }
         }
 
     }

@@ -2,6 +2,7 @@ package com.jaya.app.jayamixing.presentation.ui.screen
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDp
@@ -40,8 +41,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -65,7 +68,7 @@ fun SplashScreen(viewModel: SplashViewModel = hiltViewModel()) {
         ) {
             when (it) {
                 true -> 0.dp
-                false -> 200.dp
+                false -> 220.dp
             }
         }
     val fontAnimation =
@@ -112,13 +115,58 @@ fun SplashScreen(viewModel: SplashViewModel = hiltViewModel()) {
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(modifier = Modifier.wrapContentSize()) {
+            Column(modifier = Modifier.wrapContentSize())
+            {
                 Image(
                     painter = painterResource(R.drawable.cropped_logo),
                     contentDescription = "Logo",
                     modifier = Modifier
-                        .size(animation.value),
+                        .size(animation.value)
+                        .padding(start = 60.dp)
+                       ,
                 )
+                R.string.app_name.Text(
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    ),
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = fontAnimation.value
+                        scaleY = fontAnimation.value
+                    }
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .wrapContentHeight()
+                    .padding(vertical = 12.dp)
+                    .align(Alignment.BottomCenter),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                viewModel.connectivityStatus.collectAsState().apply {
+                    Log.d("ConnectivityStatus", "SplashScreen: ${viewModel.connectivityStatus.value}")
+                    when (value) {
+                        true -> {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 1.dp,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            R.string.loading.Text(style = MaterialTheme.typography.bodyLarge)
+                        }
+
+                        false -> {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = Color.Red,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            R.string.no_internet.Text(style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
             }
 
         }
