@@ -22,6 +22,7 @@ import com.jaya.app.jayamixing.helpers_impl.SavableMutableState
 import com.jaya.app.jayamixing.utility.UiData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -43,7 +44,6 @@ class DashboardViewModel @Inject constructor(
 
 
     var quotationsLoading by mutableStateOf(false)
-        private set
     val dataLoading = SavableMutableState(UiData.StateApiLoading,savedStateHandle,false)
     var userName = mutableStateOf("")
     var userId = mutableStateOf("")
@@ -55,12 +55,19 @@ class DashboardViewModel @Inject constructor(
 //    val baseViewModel:BaseViewModel?=null
 
 
+    private fun getDelayOfLoading(){
+        viewModelScope.launch {
+            delay(3000L)
+            quotationsLoading=false
+        }
+    }
 
 
     private val _productsList = MutableStateFlow(emptyList<ProdDetails>())
     val productsList = _productsList.asStateFlow()
     init {
         getUserDetails()
+        getDelayOfLoading()
         //getPackagingList()
         getProdDetails()
 //        baseViewModel?.userName = userName.value

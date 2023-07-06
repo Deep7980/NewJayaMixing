@@ -1,6 +1,7 @@
 package com.jaya.app.jayamixing.repository_impl
 
 import com.jaya.app.core.common.Resource
+import com.jaya.app.core.domain.model.CuttingLabourList
 import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
 import com.jaya.app.core.domain.model.MixingLabourList
@@ -68,6 +69,22 @@ class AddProductRepositoryImpl @Inject constructor(
         if (query.isEmpty() || query.isBlank()) return emptyList()
 
         val results = myApiList.getMixingLabourDetails() ?: return emptyList()
+
+        return results.filter {
+            if (query.length in 2..3) {
+                query.trim()
+                    .contains(Regex("(^[a-zA-Z]*+)|([0-9]{2}$)", option = RegexOption.COMMENTS))
+            } else {
+                it.name.lowercase().replace(Regex("[^a-zA-Z\\d:]"), "")
+                    .contains(Regex(query.lowercase().trim()))
+            }
+        }.toList()
+    }
+
+    override suspend fun getCuttingLabourTypes(query: String): List<CuttingLabourList> {
+        if (query.isEmpty() || query.isBlank()) return emptyList()
+
+        val results = myApiList.getCuttingLabourDetails() ?: return emptyList()
 
         return results.filter {
             if (query.length in 2..3) {

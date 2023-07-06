@@ -1,11 +1,15 @@
 package com.jaya.app.jayamixing.presentation.viewmodels
 
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -13,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.jaya.app.core.common.Destination
 import com.jaya.app.core.common.DialogData
 import com.jaya.app.core.common.EmitType
+import com.jaya.app.core.domain.model.CuttingLabourList
 import com.jaya.app.core.domain.model.CuttingManTypes
 import com.jaya.app.core.domain.model.FloorManagerType
 import com.jaya.app.core.domain.model.MixingLabourList
@@ -22,13 +27,16 @@ import com.jaya.app.core.domain.model.PackingSupervisorTypes
 import com.jaya.app.core.domain.model.ProductType
 import com.jaya.app.core.domain.useCases.AddProductUseCases
 import com.jaya.app.core.utils.AppNavigator
+import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.MyDialog
 import com.jaya.app.jayamixing.extensions.castListToRequiredTypes
 import com.jaya.app.jayamixing.extensions.castValueToRequiredTypes
+import com.jaya.app.jayamixing.presentation.viewStates.ImageSource
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -36,6 +44,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,8 +54,14 @@ class AddProductViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ):ViewModel() {
 
-    var MixingLabourSearchQuery by mutableStateOf(TextFieldValue())
-        private set
+    var mixingLabourSearchQuery by mutableStateOf(TextFieldValue(""))
+    var cuttingLabourSearchQuery by mutableStateOf(TextFieldValue(""))
+    var isDataLoaded = mutableStateOf(false)
+    //var mixingLabourTextValue = mixingLabourSearchQuery.text
+
+//    private val _floorTypesList = MutableStateFlow(emptyList<FloorManagerType>())
+//    val floorTypes = _floorTypesList.asStateFlow()
+
     val addProductBack = mutableStateOf<MyDialog?>(null)
     var mixingLabourList= mutableStateListOf<String>()
     var cuttingLabourList= mutableStateListOf<String>()
@@ -81,6 +96,11 @@ class AddProductViewModel @Inject constructor(
 
     var initialName = mutableStateOf("Ramesh Saha")
     var productDesc = mutableStateOf("")
+    val isSelectedMixingLabour = mutableStateOf(false)
+    val isSelectedCuttingLabour = mutableStateOf(false)
+
+    var loadMixingLabourListState = mutableStateOf(false)
+    var loadCuttingLabourListState = mutableStateOf(false)
     val uploadImageState = mutableStateOf(false)
 
     private val _floorTypesList = MutableStateFlow(emptyList<FloorManagerType>())
@@ -99,7 +119,18 @@ class AddProductViewModel @Inject constructor(
     val PackingSupervisorTypes = _packingSupervisorList.asStateFlow()
 
     private val _mixingLabourList = MutableStateFlow(emptyList<MixingLabourList>())
-    val MixingLabourTypes = _mixingLabourList.asStateFlow()
+    val mixingLabours = _mixingLabourList.asStateFlow()
+
+    private val _cuttingLabourList = MutableStateFlow(emptyList<CuttingLabourList>())
+    val cuttingLabours = _cuttingLabourList.asStateFlow()
+
+    val selectedMixingLabourList = mutableStateListOf<String>()
+    val selectedCuttingLabourList = mutableStateListOf<String>()
+    val chooseImage = mutableStateOf<MyDialog?>(null)
+    val imageChooserDialogHandler = mutableStateOf<MyDialog?>(null)
+    val selectedImageSource = mutableStateOf(ImageSource.None)
+    var dataLoading by mutableStateOf(false)
+        private set
 
     //val mixingLabourListNames = mutableStateOf("")
     //val baseViewModel:BaseViewModel?=null
@@ -117,16 +148,21 @@ class AddProductViewModel @Inject constructor(
     }
 
     fun addMixingLabourToList(){
-        if(MixingLabourSearchQuery.text.isNotEmpty()){
-            mixingLabourList.add(MixingLabourSearchQuery.text)
+        if(mixingLabourSearchQuery.text.isNotEmpty()){
+            selectedMixingLabourList.add(mixingLabourSearchQuery.text)
+            mixingLabourSearchQuery = mixingLabourSearchQuery.copy(
+                text = ""
+            )
         }
     }
 
     fun addCuttingLabourToList(){
 
-        if(cuttingLabourName.value.isNotEmpty()){
-            cuttingLabourList.add(cuttingLabourName.value)
-            cuttingLabourName.value=""
+        if(cuttingLabourSearchQuery.text.isNotEmpty()){
+            selectedCuttingLabourList.add(cuttingLabourSearchQuery.text)
+            cuttingLabourSearchQuery = cuttingLabourSearchQuery.copy(
+                text = ""
+            )
         }
     }
 
@@ -143,6 +179,32 @@ class AddProductViewModel @Inject constructor(
             )
         )
         handleDialogEvents()
+    }
+
+    fun backToDashboardPage(){
+        appNavigator.tryNavigateTo(
+            route = Destination.Dashboard(),
+            //popUpToRoute = Destination.AddProduct(),
+            isSingleTop = true,
+            inclusive = true
+        )
+        viewModelScope.launch {
+            delay(2000L)
+            dataLoading=false
+        }
+    }
+
+    fun chooseImageDialog(){
+        chooseImage.value = MyDialog(
+            data = DialogData(
+                title = "Choose Image",
+                message = "",
+                positive = "Camera",
+                negative = "Gallery"
+
+            )
+        )
+        //handleDialogEvents()
     }
 
     fun navigate(){
@@ -183,6 +245,12 @@ class AddProductViewModel @Inject constructor(
                         }
                     }
 
+                    EmitType.Loading -> {
+                        it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
+                           dataLoading = it
+                        }
+                    }
+
                     EmitType.NetworkError -> {
                         it.value?.apply {
                             castValueToRequiredTypes<String>()?.let {
@@ -205,6 +273,11 @@ class AddProductViewModel @Inject constructor(
                         it.value?.castListToRequiredTypes<FloorManagerType>()?.let { floors ->
                             _floorTypesList.update { floors }
                             Log.d("FloorTypeList", "getFloorTypes: ${floors.toList()}")
+                        }
+                    }
+                    EmitType.Loading -> {
+                        it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
+                            dataLoading = it
                         }
                     }
 
@@ -232,6 +305,12 @@ class AddProductViewModel @Inject constructor(
                         }
                     }
 
+                    EmitType.Loading -> {
+                        it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
+                            dataLoading = it
+                        }
+                    }
+
                     EmitType.NetworkError -> {
                         it.value?.apply {
                             castValueToRequiredTypes<String>()?.let {
@@ -253,6 +332,12 @@ class AddProductViewModel @Inject constructor(
                         it.value?.castListToRequiredTypes<CuttingManTypes>()?.let { cuttingMan ->
                             _cuttingManList.update { cuttingMan }
                             Log.d("FloorTypeList", "getFloorTypes: ${cuttingMan.toList()}")
+                        }
+                    }
+
+                    EmitType.Loading -> {
+                        it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
+                            dataLoading = it
                         }
                     }
 
@@ -280,6 +365,12 @@ class AddProductViewModel @Inject constructor(
                         }
                     }
 
+                    EmitType.Loading -> {
+                        it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
+                            dataLoading = it
+                        }
+                    }
+
                     EmitType.NetworkError -> {
                         it.value?.apply {
                             castValueToRequiredTypes<String>()?.let {
@@ -304,6 +395,12 @@ class AddProductViewModel @Inject constructor(
                         }
                     }
 
+                    EmitType.Loading -> {
+                        it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
+                            dataLoading = it
+                        }
+                    }
+
                     EmitType.NetworkError -> {
                         it.value?.apply {
                             castValueToRequiredTypes<String>()?.let {
@@ -319,7 +416,8 @@ class AddProductViewModel @Inject constructor(
     @OptIn(FlowPreview::class)
     fun getMixingLabourTypes(query:TextFieldValue) {
         Log.d("TESTING", "loadData: $query")
-        MixingLabourSearchQuery=query
+        mixingLabourSearchQuery=query
+        loadMixingLabourListState.value=true
         addProductUseCases.getMixingLabourTypes(query.text)
             .flowOn(Dispatchers.IO)
             .debounce(500L)
@@ -329,15 +427,15 @@ class AddProductViewModel @Inject constructor(
                         it.value?.castListToRequiredTypes<MixingLabourList>()?.let { mixingLabour ->
                             _mixingLabourList.update { mixingLabour }
                            // mixingLabourTextName.value = mixingLabourName
-                            //Log.d("MixingLabourList", "Mixing Labour List: ${mixingLabour.toList()}")
+                            Log.d("MixingLabourList", "Mixing Labour List: ${mixingLabour.toList()}")
                         }
 //
                     }
 
-                    EmitType.NetworkError -> {
+                    EmitType.Loading -> {
                         it.value?.apply {
-                            castValueToRequiredTypes<String>()?.let {
-
+                            castValueToRequiredTypes<Boolean>()?.let {
+                                isDataLoaded.value=it
                             }
                         }
                     }
@@ -346,5 +444,66 @@ class AddProductViewModel @Inject constructor(
                     }
                 }
             }.launchIn(viewModelScope)
+    }
+
+    fun onSelectMixingLabour(item: MixingLabourList) {
+//        mixingLabourTextName.value=item.name
+//        Log.d("mixingLabourTextName", "onSelectMixingLabour: ${mixingLabourTextName.value}")
+        mixingLabourSearchQuery = mixingLabourSearchQuery.copy(
+            text = item.name,
+            selection = TextRange(item.name.length)
+        )
+        isSelectedMixingLabour.value = true
+        loadMixingLabourListState.value=false
+//        selectedMixingLabourList.add(item.name)
+//        Log.d("selectedVendorList", "selectedVendorList: ${selectedMixingLabourList.toList()}")
+
+    }
+
+    @OptIn(FlowPreview::class)
+    fun getCuttingLabourTypes(query:TextFieldValue) {
+        Log.d("TESTING", "loadData: $query")
+        cuttingLabourSearchQuery=query
+        loadCuttingLabourListState.value=true
+        addProductUseCases.getCuttingLabourTypes(query.text)
+            .flowOn(Dispatchers.IO)
+            .debounce(500L)
+            .onEach {
+                when(it.type){
+                    EmitType.CUTTING_LABOUR_LIST ->{
+                        it.value?.castListToRequiredTypes<CuttingLabourList>()?.let { cuttingLabour ->
+                            _cuttingLabourList.update { cuttingLabour }
+                            // mixingLabourTextName.value = mixingLabourName
+                            Log.d("MixingLabourList", "Mixing Labour List: ${cuttingLabour.toList()}")
+                        }
+//
+                    }
+
+                    EmitType.Loading -> {
+                        it.value?.apply {
+                            castValueToRequiredTypes<Boolean>()?.let {
+                                isDataLoaded.value=it
+                            }
+                        }
+                    }
+                    else -> {
+
+                    }
+                }
+            }.launchIn(viewModelScope)
+    }
+
+    fun onSelectCuttingLabour(item: CuttingLabourList) {
+//        mixingLabourTextName.value=item.name
+//        Log.d("mixingLabourTextName", "onSelectMixingLabour: ${mixingLabourTextName.value}")
+        cuttingLabourSearchQuery = cuttingLabourSearchQuery.copy(
+            text = item.name,
+            selection = TextRange(item.name.length)
+        )
+        isSelectedCuttingLabour.value = true
+        loadCuttingLabourListState.value=false
+//        selectedMixingLabourList.add(item.name)
+//        Log.d("selectedVendorList", "selectedVendorList: ${selectedMixingLabourList.toList()}")
+
     }
 }

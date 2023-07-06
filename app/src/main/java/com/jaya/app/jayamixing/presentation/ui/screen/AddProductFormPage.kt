@@ -8,9 +8,13 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +46,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,6 +59,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -81,7 +87,14 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberImagePainter
+import com.jaya.app.jayamixing.BuildConfig
 import com.jaya.app.jayamixing.R
+import com.jaya.app.jayamixing.extensions.BackPressHandler
+import com.jaya.app.jayamixing.extensions.screenHeight
 import com.jaya.app.jayamixing.extensions.screenWidth
 import com.jaya.app.jayamixing.presentation.ui.custom_view.CuttingManDropDown
 import com.jaya.app.jayamixing.presentation.ui.custom_view.FloorManagerDropdown
@@ -96,16 +109,19 @@ import com.jaya.app.jayamixing.ui.theme.AppBarYellow
 import com.jaya.app.jayamixing.ui.theme.LogoutRed
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
 import java.util.Locale
+import java.util.Objects
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewModel) {
 
     val context = LocalContext.current
     val textState = remember { mutableStateOf(TextFieldValue("")) }
     val mCheckedState = remember{ mutableStateOf(false)}
+    val currentShiftState = remember { mutableStateOf(viewModel.isShiftAselected.value) }
 
+    BackPressHandler(onBackPressed = {viewModel.onBackDialog()})
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -133,6 +149,9 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     viewModel.shiftCTxtColor.value = Color.DarkGray
 
                     viewModel.selectedFloor.value = "Floor Manager"
+
+                    currentShiftState.value = true
+
 
                 },
                 colors = ButtonDefaults.buttonColors(viewModel.shiftABtnBackColor.value),
@@ -165,7 +184,8 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     viewModel.shiftCBtnBackColor.value = Color.White
                     viewModel.shiftCTxtColor.value = Color.DarkGray
 
-                    viewModel.selectedFloor.value = "Floor Manager"
+                    viewModel.selectedFloor.value = ""
+                    Toast.makeText(context,"Shift B selected",Toast.LENGTH_SHORT).show()
 
                 },
                 colors = ButtonDefaults.buttonColors(viewModel.shiftBBtnBackColor.value),
@@ -198,7 +218,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     viewModel.shiftABtnBackColor.value = Color.White
                     viewModel.shiftATxtColor.value = Color.DarkGray
 
-                    viewModel.selectedFloor.value = "Floor Manager"
+                    Toast.makeText(context,"Shift C selected",Toast.LENGTH_SHORT).show()
 
                 },
                 colors = ButtonDefaults.buttonColors(viewModel.shiftCBtnBackColor.value),
@@ -369,6 +389,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 //                )
 //            }
 //        }
+
             Row(
                 modifier = Modifier
                     .padding(top = 15.dp, start = 20.dp, end = 15.dp)
@@ -380,7 +401,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 ////                        viewModel.getMixingLabourTypes(textValue)
 //                        viewModel.mixingLabourTextName.value=textValue
 //                    },
-                    value = viewModel.MixingLabourSearchQuery,
+                    value = viewModel.mixingLabourSearchQuery,
                     onValueChange = viewModel::getMixingLabourTypes,
                     //label = { Text("your mobile number") },
                     placeholder = { Text("Mixing Labour", color = Color.Gray) },
@@ -426,9 +447,101 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     //Icon(Icons.Filled.Add, "add")
                 }
 
-            }//row
+            }
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                val items= viewModel.mixingLabours.collectAsState().value
+                Column(modifier = Modifier
+                    .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top)
+                {
 
-            for ((index, mixingLaboursName) in viewModel.mixingLabourList.withIndex() ) {
+                    //// selected labours will show here....
+//                    viewModel.selectedMixingLabourList.forEach {name->
+//                        Text(text = name)
+//                    }
+
+                    for ((index, mixingLaboursName) in viewModel.selectedMixingLabourList.withIndex() ) {
+
+                        Row(modifier = Modifier
+                            .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                            .fillMaxWidth()
+
+                        ) {
+                            Text(
+                                text = "${index+1}. $mixingLaboursName",
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .align(Alignment.CenterVertically),
+                                //   .wrapContentSize(),
+                                fontSize = 17.sp,
+                                color = Color.DarkGray,
+                                // fontWeight = FontWeight.Bold
+                            )
+                            IconButton(onClick = {
+                                //  viewModel.showHidepasswordText.value = false
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.delete_labour_svg),
+                                    contentDescription = null,
+                                    tint = LogoutRed,
+                                    modifier = Modifier
+                                        .width(screenWidth * 0.15f)
+                                        .align(Alignment.CenterVertically)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            onClick = {
+                                                viewModel.selectedMixingLabourList.removeAt(index)
+                                            },
+                                            role = Role.Image
+                                        )
+                                )
+                            }
+
+                        }
+                    }
+
+
+                }
+                AnimatedContent(targetState = items.isNotEmpty()) {state->
+                   when(state) {
+                       true -> Column(
+                           modifier = Modifier.fillMaxWidth(.90f),
+                           horizontalAlignment = Alignment.CenterHorizontally,
+                           verticalArrangement = Arrangement.Top)
+                       {
+                           if(viewModel.mixingLabourSearchQuery.text.isNotEmpty()){
+                               items.forEach { item ->
+                                   TextButton(
+                                       onClick = {
+                                           viewModel.onSelectMixingLabour(item)
+                                       },
+                                       modifier = Modifier
+                                           .fillMaxWidth()
+                                           .background(Color.LightGray))
+                                   {
+                                       Column {
+                                           Text(text = item.name, color = Color.Black)
+                                           Divider(
+                                               color = Color.Black,
+                                               thickness = 0.5.dp,
+                                               modifier = Modifier.padding(top = 10.dp)
+                                           )
+                                       }
+
+                                   }
+                               }
+                           }
+
+                       }
+                       false -> {}
+                   }
+                }
+            }
+            //row
+
+           /* for ((index, mixingLaboursName) in viewModel.mixingLabourList.withIndex() ) {
 
                 Row(modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp, top = 10.dp)
@@ -467,16 +580,21 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     }
 
                 }
-            }
+            }*/
 
+
+
+
+
+            //For Cutting Labours display--------------->
             Row(
                 modifier = Modifier
                     .padding(top = 15.dp, start = 20.dp, end = 15.dp)
                     .fillMaxWidth()
             ) {
                 OutlinedTextField(
-                    value = viewModel.cuttingLabourName.value,
-                    onValueChange = { viewModel.cuttingLabourName.value = it },
+                    value = viewModel.cuttingLabourSearchQuery,
+                    onValueChange = viewModel::getCuttingLabourTypes,
                     //label = { Text("your mobile number") },
                     placeholder = { Text("Cutting Labour", color = Color.Gray) },
                     colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -523,46 +641,139 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
             }
 
-            for ((index, cuttingLaboursName) in viewModel.cuttingLabourList.withIndex() ) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+                val items= viewModel.cuttingLabours.collectAsState().value
+                Column(modifier = Modifier
+                    .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top)
+                {
 
-                Row(modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 10.dp)
-                    .fillMaxWidth()
+                    //// selected labours will show here....
+//                    viewModel.selectedMixingLabourList.forEach {name->
+//                        Text(text = name)
+//                    }
 
-                ) {
-                    Text(
-                        text = "${index+1}. $cuttingLaboursName",
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically),
-                        //   .wrapContentSize(),
-                        fontSize = 17.sp,
-                        color = Color.DarkGray,
-                        // fontWeight = FontWeight.Bold
-                    )
-                    IconButton(onClick = {
-                        //  viewModel.showHidepasswordText.value = false
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.delete_labour_svg),
-                            contentDescription = null,
-                            tint = LogoutRed,
-                            modifier = Modifier
-                                .width(screenWidth * 0.15f)
-                                .align(Alignment.CenterVertically)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                        viewModel.cuttingLabourList.removeAt(index)
-                                    },
-                                    role = Role.Image
+                    for ((index, cuttingLabourName) in viewModel.selectedCuttingLabourList.withIndex() ) {
+
+                        Row(modifier = Modifier
+                            .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                            .fillMaxWidth()
+
+                        ) {
+                            Text(
+                                text = "${index+1}. $cuttingLabourName",
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .align(Alignment.CenterVertically),
+                                //   .wrapContentSize(),
+                                fontSize = 17.sp,
+                                color = Color.DarkGray,
+                                // fontWeight = FontWeight.Bold
+                            )
+                            IconButton(onClick = {
+                                //  viewModel.showHidepasswordText.value = false
+                            }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.delete_labour_svg),
+                                    contentDescription = null,
+                                    tint = LogoutRed,
+                                    modifier = Modifier
+                                        .width(screenWidth * 0.15f)
+                                        .align(Alignment.CenterVertically)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            onClick = {
+                                                viewModel.selectedCuttingLabourList.removeAt(index)
+                                            },
+                                            role = Role.Image
+                                        )
                                 )
-                        )
+                            }
+
+                        }
                     }
 
+
+                }
+                AnimatedContent(targetState = items.isNotEmpty()) {state->
+                    when(state) {
+                        true -> Column(
+                            modifier = Modifier.fillMaxWidth(.90f),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Top)
+                        {
+                            if(viewModel.cuttingLabourSearchQuery.text.isNotEmpty()){
+                                items.forEach { item ->
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.onSelectCuttingLabour(item)
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.LightGray))
+                                    {
+                                        Column {
+                                            Text(text = item.name, color = Color.Black)
+                                            Divider(
+                                                color = Color.Black,
+                                                thickness = 0.5.dp,
+                                                modifier = Modifier.padding(top = 10.dp)
+                                            )
+                                        }
+
+                                    }
+                                }
+                            }
+
+                        }
+                        false -> {}
+                    }
                 }
             }
+
+//            for ((index, cuttingLaboursName) in viewModel.cuttingLabourList.withIndex() ) {
+//
+//                Row(modifier = Modifier
+//                    .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+//                    .fillMaxWidth()
+//
+//                ) {
+//                    Text(
+//                        text = "${index+1}. $cuttingLaboursName",
+//                        modifier = Modifier
+//                            .weight(1f)
+//                            .align(Alignment.CenterVertically),
+//                        //   .wrapContentSize(),
+//                        fontSize = 17.sp,
+//                        color = Color.DarkGray,
+//                        // fontWeight = FontWeight.Bold
+//                    )
+//                    IconButton(onClick = {
+//                        //  viewModel.showHidepasswordText.value = false
+//                    }) {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.delete_labour_svg),
+//                            contentDescription = null,
+//                            tint = LogoutRed,
+//                            modifier = Modifier
+//                                .width(screenWidth * 0.15f)
+//                                .align(Alignment.CenterVertically)
+//                                .clickable(
+//                                    indication = null,
+//                                    interactionSource = remember { MutableInteractionSource() },
+//                                    onClick = {
+//                                        viewModel.cuttingLabourList.removeAt(index)
+//                                    },
+//                                    role = Role.Image
+//                                )
+//                        )
+//                    }
+//
+//                }
+//            }
+
 
             Row(
                 modifier = Modifier
@@ -765,19 +976,18 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                         focusedBorderColor = Color.DarkGray,
                         unfocusedBorderColor = Color.Black)
                 )//card
-
                 Row(
                     modifier = Modifier
                         .padding(start = 20.dp, end = 20.dp, bottom = 40.dp, top = 5.dp)
                         .fillMaxWidth(1f)
 
                 ){
-                    RequestContentPermission(viewModel)
+                    //RequestContentPermission(viewModel)
+                    PickImageFromCamera()
+                    //cameraButtonClick(viewModel)
 
                 }
-
             }
-
             OutlinedButton(
                 modifier = Modifier
                     .fillMaxWidth(0.90f)
@@ -801,39 +1011,49 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
         }
 
-
-
-//        SearchScreen(textState)
-//        ItemList(state = textState)
-
     }
 }
 
+//@Composable
+//fun cameraButtonClick(viewModel: AddProductViewModel){
+//
+//
+//    Button(onClick = {viewModel.onBackDialog()},
+//        colors = ButtonDefaults.outlinedButtonColors(containerColor= Color.White),
+//        modifier = Modifier
+//            .padding(end = 10.dp)
+//            .width(70.dp)
+//            .height(50.dp)
+//            ,
+//        border = BorderStroke(width = 1.dp,color = Color.DarkGray),
+//        shape = RoundedCornerShape(5.dp)
+//    ) {
+//        Icon(
+//            painter = painterResource(id = R.drawable.camera),
+//            contentDescription = "camera",
+//            modifier = Modifier.fillMaxSize(1f)
+//        )
+//    }
+//}
 
 @Composable
-fun RequestContentPermission(viewModel: AddProductViewModel) {
+fun PickImageFromCamera() {
+    var bitmap  by remember{ mutableStateOf<Bitmap?>(null)}
     val uploadImageTextState = remember { mutableStateOf(true) }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val context = LocalContext.current
-    val bitmap =  remember {
-        mutableStateOf<Bitmap?>(null)
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()){
+        bitmap = it
     }
 
-    val launcher = rememberLauncherForActivityResult(contract =
-    ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageUri = uri
-    }
     Row(
         modifier = Modifier.fillMaxWidth()
     ) {
         Button(onClick = {
-            launcher.launch("image/*")
-            uploadImageTextState.value = false
-           //viewModel.uploadImageState.value = false
-        },
+            launcher.launch()
+            uploadImageTextState.value = false},
             colors = ButtonDefaults.outlinedButtonColors(containerColor= Color.White),
             modifier = Modifier
-                .padding(end = 20.dp)
+                .padding(end = 10.dp)
                 .width(70.dp)
                 .height(50.dp)
                 .align(Alignment.CenterVertically),
@@ -851,121 +1071,14 @@ fun RequestContentPermission(viewModel: AddProductViewModel) {
         if(uploadImageTextState.value){
             Text(text = "Upload Image", modifier = Modifier.padding(top = 15.dp))
         }else{
-            imageUri?.let {
-                if (Build.VERSION.SDK_INT < 28) {
-                    bitmap.value = MediaStore.Images
-                        .Media.getBitmap(context.contentResolver,it)
-
-                } else {
-                    val source = ImageDecoder
-                        .createSource(context.contentResolver,it)
-                    bitmap.value = ImageDecoder.decodeBitmap(source)
-                }
-
-                bitmap.value?.let {  btm ->
-                    Image(bitmap = btm.asImageBitmap(),
-                        contentDescription =null,
-                        modifier = Modifier.size(120.dp))
-                }
+            bitmap?.let {
+                Image(bitmap = bitmap?.asImageBitmap()!!, contentDescription = "", modifier = Modifier.size(200.dp))
             }
         }
 
-
-
     }
+
 }
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun SearchScreen(state: MutableState<TextFieldValue>) {
-//
-//    TextField(
-//        value = state.value,
-//        onValueChange = { value ->
-//            state.value = value
-//        },
-//        modifier = Modifier.fillMaxWidth(),
-//        textStyle = TextStyle(color = Color.White, fontSize = 18.sp),
-//        leadingIcon = {
-//            Icon(
-//                Icons.Default.Search,
-//                contentDescription = "",
-//                modifier = Modifier
-//                    .padding(15.dp)
-//                    .size(24.dp)
-//            )
-//        },
-//        trailingIcon = {
-//            if (state.value != TextFieldValue("")) {
-//                IconButton(
-//                    onClick = {
-//                        state.value =
-//                            TextFieldValue("") // Remove text from TextField when you press the 'X' icon
-//                    }
-//                ) {
-//                    Icon(
-//                        Icons.Default.Close,
-//                        contentDescription = "",
-//                        modifier = Modifier
-//                            .padding(15.dp)
-//                            .size(24.dp)
-//                    )
-//                }
-//            }
-//        },
-//        singleLine = true,
-//        shape = RectangleShape, // The TextFiled has rounded corners top left and right by default
-//        colors = TextFieldDefaults.textFieldColors(
-//            textColor = Color.White,
-//            cursorColor = Color.White,
-//            focusedIndicatorColor = Color.Transparent,
-//            unfocusedIndicatorColor = Color.Transparent,
-//            disabledIndicatorColor = Color.Transparent
-//        )
-//    )
-//}
-//
-//@Composable
-//fun ItemList(state: MutableState<TextFieldValue>) {
-//    val items by remember { mutableStateOf(listOf("Drink water", "Walk")) }
-//
-//    var filteredItems: List<String>
-//    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-//        val searchedText = state.value.text
-//        filteredItems = if (searchedText.isEmpty()) {
-//            items
-//        } else {
-//            val resultList = ArrayList<String>()
-//            for (item in items) {
-//                if (item.lowercase(Locale.getDefault())
-//                        .contains(searchedText.lowercase(Locale.getDefault()))
-//                ) {
-//                    resultList.add(item)
-//                }
-//            }
-//            resultList
-//        }
-//        items(filteredItems) { filteredItem ->
-//            ItemListItem(
-//                ItemText = filteredItem,
-//                onItemClick = { /*Click event code needs to be implement*/
-//                }
-//            )
-//        }
-//
-//    }
-//}
-//
-//@Composable
-//fun ItemListItem(ItemText: String, onItemClick: (String) -> Unit) {
-//    Row(
-//        modifier = Modifier
-//            .clickable(onClick = { onItemClick(ItemText) })
-//            .background(colorResource(id = R.color.purple_700))
-//            .height(57.dp)
-//            .fillMaxWidth()
-//            .padding(PaddingValues(8.dp, 16.dp))
-//    ) {
-//        Text(text = ItemText, fontSize = 18.sp, color = Color.White)
-//    }
-//}
+
+

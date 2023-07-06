@@ -198,11 +198,24 @@ class AddProductUseCases @Inject constructor(
     }
 
     fun getMixingLabourTypes(query:String) = flow{
+        emit(DataEntry(EmitType.Loading,false))
         val searchMixingLabours = addProductRepository.getMixingLabourTypes(query)
+        emit(DataEntry(EmitType.Loading,true))
         if(searchMixingLabours.isNotEmpty()){
             emit(DataEntry(EmitType.MIXING_LABOUR_LIST,searchMixingLabours))
         }else{
             emit(DataEntry(EmitType.NO_MIXING_LABOUR,null))
+        }
+    }
+
+    fun getCuttingLabourTypes(query:String) = flow{
+        emit(DataEntry(EmitType.Loading,false))
+        val searchCuttingLabours = addProductRepository.getCuttingLabourTypes(query)
+        emit(DataEntry(EmitType.Loading,true))
+        if(searchCuttingLabours.isNotEmpty()){
+            emit(DataEntry(EmitType.CUTTING_LABOUR_LIST,searchCuttingLabours))
+        }else{
+            emit(DataEntry(EmitType.NO_CUTTING_LABOUR,null))
         }
     }
 

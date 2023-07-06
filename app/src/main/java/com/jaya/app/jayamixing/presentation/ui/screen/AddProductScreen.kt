@@ -1,11 +1,19 @@
 package com.jaya.app.jayamixing.presentation.ui.screen
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,6 +37,8 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -49,9 +60,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Green
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -63,6 +76,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.BackPressHandler
+import com.jaya.app.jayamixing.extensions.Image
 import com.jaya.app.jayamixing.presentation.ui.custom_view.CuttingManDropDown
 import com.jaya.app.jayamixing.presentation.ui.custom_view.FloorManagerDropdown
 import com.jaya.app.jayamixing.presentation.ui.custom_view.MixingManDropdown
@@ -75,11 +89,13 @@ import com.jaya.app.jayamixing.presentation.viewmodels.BaseViewModel
 import com.jaya.app.jayamixing.presentation.viewmodels.DashboardViewModel
 import com.jaya.app.jayamixing.ui.theme.AppBarYellow
 import com.jaya.app.jayamixing.ui.theme.LogoutRed
+import com.jaya.app.jayamixing.ui.theme.Primary
+import com.jaya.app.jayamixing.ui.theme.Secondary
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun AddProductScreen(
     dashboardViewModel: DashboardViewModel= hiltViewModel(),
@@ -89,9 +105,10 @@ fun AddProductScreen(
     val currentScreen = remember { mutableStateOf(DrawerAppScreen.Dashboard) }
     val coroutineScope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
     val ctx = LocalContext.current
 
-    BackPressHandler(onBackPressed = {})
+    BackPressHandler(onBackPressed = {addProductViewModel.backToDashboardPage()})
     ModalNavigationDrawer(
         drawerState = drawerState,
         modifier = Modifier.fillMaxSize(),
@@ -149,12 +166,50 @@ fun AddProductScreen(
                 }
             }
 
-            BodyComponent(
-                currentScreen = currentScreen.value,
-                openDrawer = { coroutineScope.launch { drawerState.open() } },
-                viewModel = hiltViewModel(),
-                baseViewModel
-            )
+            AnimatedContent(
+                targetState = addProductViewModel.dataLoading,
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(700)) + slideInVertically(animationSpec = tween(400),
+                        initialOffsetY = { fullHeight -> fullHeight }) with
+                            fadeOut(animationSpec = tween(400))
+                }
+            ) {targetState ->
+                when(targetState){
+                    true -> Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            modifier = Modifier.size(150.dp), contentAlignment = Alignment.Center
+                        ) {
+                            Surface(modifier = Modifier.fillMaxSize(),
+                                shape = CircleShape,
+                                color = com.jaya.app.jayamixing.ui.theme.Surface,
+                                content = {})
+                            CircularProgressIndicator(
+                                color = Secondary, modifier = Modifier.fillMaxSize()
+                            )
+                            R.drawable.cropped_logo.Image(modifier = Modifier.size(100.dp))
+                        }
+                    }
+                    false -> BodyComponent(
+                        currentScreen = currentScreen.value,
+                        openDrawer = { coroutineScope.launch { drawerState.open() } },
+                        viewModel = hiltViewModel(),
+                        baseViewModel
+                    )
+                }
+            }
+
+//            BodyComponent(
+//                currentScreen = currentScreen.value,
+//                openDrawer = { coroutineScope.launch { drawerState.open() } },
+//                viewModel = hiltViewModel(),
+//                baseViewModel
+//            )
         }
     }
 }
@@ -187,15 +242,19 @@ fun DrawerComponent(
         modifier = Modifier
             .fillMaxHeight()
             .width(270.dp)
-            .background(Color.White)
+            .clip(RoundedCornerShape(20.dp))
+            .background(Primary)
     ) {
 
-        Card(
-            colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.addBtnDeepGreenColor)),
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 7.dp, bottom = 15.dp),
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, SplashGreen),
-        ) {
+        Image(
+            painter = painterResource(id = R.drawable.cropped_logo),
+            contentDescription = "Jaya Logo",
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxSize(0.10f)
+                .padding(top = 20.dp),
+        )
+
             Column(
                 modifier = Modifier
                     .wrapContentHeight()
@@ -206,65 +265,71 @@ fun DrawerComponent(
                 Text(
                     text = viewModel.userName.value,
                     color = Color.White, // Header Color
-                    fontSize = 20.sp,
+                    fontSize = 28.sp,
                     textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
-                        .padding(top = 20.dp)
+                        .padding(top = 10.dp)
                 )
-                Text(
-                    text = viewModel.userId.value,
-                    color = Color.White, // Header Color
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                    //.padding(top = 8.dp)
-                )
-                Text(
-                    text = viewModel.emailId.value,
-                    color = Color.White, // Header Color
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                    // .padding(top = 8.dp)
-                )
+//                Text(
+//                    text = viewModel.userId.value,
+//                    color = Color.White, // Header Color
+//                    fontSize = 15.sp,
+//                    textAlign = TextAlign.Start,
+//                    fontWeight = FontWeight.Normal,
+//                    modifier = Modifier
+//                        .align(Alignment.CenterHorizontally)
+//                    //.padding(top = 8.dp)
+//                )
+//                Text(
+//                    text = viewModel.emailId.value,
+//                    color = Color.White, // Header Color
+//                    fontSize = 15.sp,
+//                    textAlign = TextAlign.Start,
+//                    fontWeight = FontWeight.Normal,
+//                    modifier = Modifier
+//                        .align(Alignment.CenterHorizontally)
+//                    // .padding(top = 8.dp)
+//                )
                 Text(
                     text = viewModel.designation.value,
                     color = Color.White,
-                    fontSize = 15.sp,
+                    fontSize = 18.sp,
                     textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = 10.dp)
                 )
 
             }
-        }
+        Divider(color = Color.White)
 
         //  Spacer(modifier = Modifier.padding(top = 80.dp))
 
         for (index in DrawerAppScreen.values().indices) {
             val screen = getScreenBasedOnIndex(index)
-            Column(Modifier.clickable(onClick = {
-                addProductViewModel.navigate()
-                currentScreen.value = screen
-                closeDrawer()
-            }), content = {
+            Column(
+                 content = {
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth(1.2f)
+                        .padding(20.dp)
+                        .clickable(
+                            onClick = {
+                                addProductViewModel.backToDashboardPage()
+                                closeDrawer()
+                            }
+                        ),
+                    shape = RoundedCornerShape(20.dp),
                     color = if (currentScreen.value == screen) {
-                        AppBarYellow
+                        White
                     } else {
                         Color.LightGray
                     }
                 ) {
-                    Text(text = screen.name, modifier = Modifier.padding(16.dp))
+                    Text(text = screen.name,modifier = Modifier.padding(20.dp), fontWeight = FontWeight.Medium)
                 }
             })
         }

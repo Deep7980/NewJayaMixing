@@ -3,6 +3,15 @@ package com.jaya.app.jayamixing.presentation.ui.screen
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -53,6 +63,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -67,13 +78,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.BackPressHandler
+import com.jaya.app.jayamixing.extensions.Image
 import com.jaya.app.jayamixing.extensions.Text
 import com.jaya.app.jayamixing.presentation.viewmodels.BaseViewModel
 import com.jaya.app.jayamixing.presentation.viewmodels.DashboardViewModel
 import com.jaya.app.jayamixing.ui.theme.AppBarYellow
 import com.jaya.app.jayamixing.ui.theme.LogoutRed
+import com.jaya.app.jayamixing.ui.theme.Primary
+import com.jaya.app.jayamixing.ui.theme.Secondary
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
 import com.jaya.app.jayamixing.ui.theme.Typography
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -224,7 +239,7 @@ fun getScreenBasedOnIndex(index: Int) = when (index) {
     else -> DrawerAppScreen.Dashboard
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun BodyContentComponent(
     currentScreen: DrawerAppScreen,
@@ -258,34 +273,70 @@ fun BodyContentComponent(
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
         ) {
 
-            if(viewModel.quotationsLoading){
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(150.dp)
-                ) {
-                    CircularProgressIndicator(
-                        color = Color.Black,
-                        strokeWidth = 1.dp,
-                        modifier = Modifier
-                            .size(48.dp)
-//                            .padding(top = 100.dp, start = 40.dp)
 
-                    )
-                    R.string.loading.Text(
-                        style = Typography.bodyMedium,
-//                        modifier = Modifier.padding(start = 100.dp, end = 50.dp,top=100.dp)
+            AnimatedContent(targetState = viewModel.quotationsLoading,
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+                transitionSpec = {
+                    fadeIn() + slideInVertically(animationSpec = tween(400),
+                        initialOffsetY = { fullHeight -> fullHeight }) with
+                            fadeOut(animationSpec = tween(400))
+                }) { targetState ->
+                    when(targetState){
+                        true -> Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier.size(150.dp), contentAlignment = Alignment.Center
+                            ) {
+                                Surface(modifier = Modifier.fillMaxSize(),
+                                    shape = CircleShape,
+                                    color = com.jaya.app.jayamixing.ui.theme.Surface,
+                                    content = {})
+                                CircularProgressIndicator(
+                                    color = Secondary, modifier = Modifier.fillMaxSize()
+                                )
+                                R.drawable.cropped_logo.Image(modifier = Modifier.size(100.dp))
+                            }
+                        }
+                        false -> DashboardDetails(viewModel)
+                    }
 
-                    )
-                }
             }
 
 
-            
-            DashboardDetails(viewModel)
+//            if(viewModel.quotationsLoading){
+//                Column(
+//                    verticalArrangement = Arrangement.Center,
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    modifier = Modifier.padding(150.dp)
+//                ) {
+//                    CircularProgressIndicator(
+//                        color = Color.Black,
+//                        strokeWidth = 1.dp,
+//                        modifier = Modifier
+//                            .size(48.dp)
+////                            .padding(top = 100.dp, start = 40.dp)
+//
+//                    )
+//                    R.string.loading.Text(
+//                        style = Typography.bodyMedium,
+////                        modifier = Modifier.padding(start = 100.dp, end = 50.dp,top=100.dp)
+//
+//                    )
+//                }
+//            }
+//
+//
+//
+//            DashboardDetails(viewModel)
         }
 
     }
@@ -306,15 +357,20 @@ fun DrawerContentComponent(
         modifier = Modifier
             .fillMaxHeight()
             .width(270.dp)
-            .background(Color.White)
+            .clip(RoundedCornerShape(20.dp))
+            .background(Primary)
     ) {
 
-        Card(
-            colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.addBtnDeepGreenColor)),
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 7.dp, bottom = 15.dp),
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, SplashGreen),
-        ) {
+
+        Image(
+            painter = painterResource(id = R.drawable.cropped_logo),
+            contentDescription = "Jaya Logo",
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxSize(0.10f)
+                .padding(top = 20.dp),
+        )
+
             Column(
                 modifier = Modifier
                     .wrapContentHeight()
@@ -325,64 +381,72 @@ fun DrawerContentComponent(
                 Text(
                     text = viewModel.userName.value,
                     color = Color.White, // Header Color
-                    fontSize = 20.sp,
+                    fontSize = 28.sp,
                     textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
-                        .padding(top = 20.dp)
+                        .padding(top = 10.dp)
                 )
-                Text(
-                    text = viewModel.userId.value,
-                    color = Color.White, // Header Color
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                    //.padding(top = 8.dp)
-                )
-                Text(
-                    text = viewModel.emailId.value,
-                    color = Color.White, // Header Color
-                    fontSize = 15.sp,
-                    textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                    // .padding(top = 8.dp)
-                )
+//                Text(
+//                    text = viewModel.userId.value,
+//                    color = Color.White, // Header Color
+//                    fontSize = 15.sp,
+//                    textAlign = TextAlign.Start,
+//                    fontWeight = FontWeight.Normal,
+//                    modifier = Modifier
+//                        .align(Alignment.CenterHorizontally)
+//                    //.padding(top = 8.dp)
+//                )
+//                Text(
+//                    text = viewModel.emailId.value,
+//                    color = Color.White, // Header Color
+//                    fontSize = 15.sp,
+//                    textAlign = TextAlign.Start,
+//                    fontWeight = FontWeight.Normal,
+//                    modifier = Modifier
+//                        .align(Alignment.CenterHorizontally)
+//                    // .padding(top = 8.dp)
+//                )
                 Text(
                     text = viewModel.designation.value,
                     color = Color.White,
-                    fontSize = 15.sp,
+                    fontSize = 18.sp,
                     textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(bottom = 10.dp)
                 )
 
             }
-        }
+        Divider(color = Color.White)
 
         //  Spacer(modifier = Modifier.padding(top = 80.dp))
 
         for (index in DrawerAppScreen.values().indices) {
             val screen = getScreenBasedOnIndex(index)
-            Column(Modifier.clickable(onClick = {
-                currentScreen.value = screen
-                closeDrawer()
-            }), content = {
+            Column(
+
+                content = {
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth(1.2f)
+                        .padding(20.dp)
+                        .clickable(
+                            onClick = {
+                                currentScreen.value = screen
+                                closeDrawer()
+                            }
+                        ),
+                    shape = RoundedCornerShape(20.dp),
                     color = if (currentScreen.value == screen) {
-                        AppBarYellow
+                        Color.White
                     } else {
                         Color.LightGray
                     }
                 ) {
-                    Text(text = screen.name, modifier = Modifier.padding(16.dp))
+                    Text(text = screen.name, modifier = Modifier.padding(20.dp), fontWeight = FontWeight.Medium)
                 }
             })
         }
@@ -498,7 +562,7 @@ fun DashboardDetails(viewModel: DashboardViewModel){
                                 modifier = Modifier.padding(top = 20.dp, start = 20.dp)
                             )
                             Text(
-                                text = "${item.packingSupervisor}",
+                                text = item.packingSupervisor,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 20.sp,
                                 modifier = Modifier.padding(top = 5.dp, end = 22.dp, bottom = 20.dp, start = 20.dp)

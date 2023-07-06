@@ -7,4 +7,6 @@
     <string name="no_internet">No Internet</string>
     <string name="upload_image">Upload Image</string>
     <string name="record_submission_message">Thank you, your record has\n been submitted.</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
 </resources>

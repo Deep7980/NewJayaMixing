@@ -3,6 +3,7 @@ package com.jaya.app.jayamixing.presentation.ui.custom_view
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -90,6 +91,7 @@ fun FloorManagerDropdown(
                         Row(modifier = Modifier
                             .clickable { mExpanded = !mExpanded }
                             .fillMaxHeight()
+                            .fillMaxWidth()
                             .weight(1f)
                             .padding(start = 15.dp)) {
                             Text(
@@ -113,7 +115,7 @@ fun FloorManagerDropdown(
 
 
                 DropdownMenu(
-                    modifier= Modifier.wrapContentHeight().wrapContentWidth(),
+                    modifier= Modifier.wrapContentHeight().fillMaxWidth(0.90f).background(Color.LightGray),
                     expanded = mExpanded,
                     onDismissRequest = { mExpanded = false },
                 ) {
@@ -123,8 +125,8 @@ fun FloorManagerDropdown(
                                 Column {
                                     Text(text = item.floor_type)
                                     Divider(
-                                        color = Color.LightGray,
-                                        thickness = 0.8.dp,
+                                        color = Color.Black,
+                                        thickness = 0.5.dp,
                                         modifier = Modifier.padding(top = 10.dp)
                                     )
                                 }

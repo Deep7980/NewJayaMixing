@@ -21,8 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -187,6 +189,14 @@ fun upToBottom() = slideInVertically(
     animationSpec = animationSpec()
 ) + fadeOut(animationSpec())
 
+@Composable
+fun Int.Image(modifier: Modifier = Modifier, scale: ContentScale = ContentScale.Fit) =
+    androidx.compose.foundation.Image(
+        painter = painterResource(id = this),
+        contentDescription = toString(),
+        modifier = modifier,
+        contentScale = scale,
+    )
 
 
 @OptIn(ExperimentalAnimationApi::class)

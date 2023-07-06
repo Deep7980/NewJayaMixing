@@ -2,6 +2,7 @@ package com.jaya.app.jayamixing.module
 
 import com.jaya.app.core.domain.model.AppVersionModel
 import com.jaya.app.core.domain.model.BaseUrlModel
+import com.jaya.app.core.domain.model.CuttingLabourList
 import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerType
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
@@ -57,4 +58,7 @@ interface MyApiList {
 
     @GET("ea14cfe83c330e6dd9ed")
     suspend fun getMixingLabourDetails(): List<MixingLabourList>
+
+    @GET("e22d9bae14d33fdb637e")
+    suspend fun getCuttingLabourDetails(): List<CuttingLabourList>
 }

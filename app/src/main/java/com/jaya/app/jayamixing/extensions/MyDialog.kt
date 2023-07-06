@@ -3,6 +3,7 @@ package com.jaya.app.jayamixing.extensions
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.window.DialogProperties
 import com.jaya.app.core.common.DialogData
+import com.jaya.app.core.helpers.DialogEventHandler
 
 class MyDialog(private val data: DialogData? = null) {
 
@@ -12,6 +13,13 @@ class MyDialog(private val data: DialogData? = null) {
     fun currentState() = _enable.value
 
     val properties = DialogProperties()
+
+    private var _consumeEvents: DialogEventHandler? = null
+    val events: DialogEventHandler? get() = _consumeEvents
+
+    fun consumeEvents(handler: DialogEventHandler) {
+        if (_consumeEvents == null) _consumeEvents = handler
+    }
 
     init {
         if (data != null) {

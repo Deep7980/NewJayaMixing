@@ -3,6 +3,7 @@ package com.jaya.app.jayamixing.presentation.ui.custom_view
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -112,7 +113,7 @@ fun OvenManDropdown(
 
 
                 DropdownMenu(
-                    modifier= Modifier.wrapContentHeight(),
+                    modifier= Modifier.wrapContentHeight().fillMaxWidth(0.90f).background(Color.LightGray),
                     expanded = mExpanded,
                     onDismissRequest = { mExpanded = false },
                 ) {
@@ -122,8 +123,8 @@ fun OvenManDropdown(
                                 Column {
                                     Text(text = item.name)
                                     Divider(
-                                        color = Color.LightGray,
-                                        thickness = 0.8.dp,
+                                        color = Color.Black,
+                                        thickness = 0.5.dp,
                                         modifier = Modifier.padding(top = 10.dp)
                                     )
                                 }
