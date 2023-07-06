@@ -57,6 +57,7 @@ class AddProductViewModel @Inject constructor(
     var mixingLabourSearchQuery by mutableStateOf(TextFieldValue(""))
     var cuttingLabourSearchQuery by mutableStateOf(TextFieldValue(""))
     var isDataLoaded = mutableStateOf(false)
+    var showDialog = mutableStateOf(false)
     //var mixingLabourTextValue = mixingLabourSearchQuery.text
 
 //    private val _floorTypesList = MutableStateFlow(emptyList<FloorManagerType>())
@@ -129,6 +130,7 @@ class AddProductViewModel @Inject constructor(
     val chooseImage = mutableStateOf<MyDialog?>(null)
     val imageChooserDialogHandler = mutableStateOf<MyDialog?>(null)
     val selectedImageSource = mutableStateOf(ImageSource.None)
+    val galleryStateOpen = mutableStateOf(false)
     var dataLoading by mutableStateOf(false)
         private set
 
@@ -145,6 +147,10 @@ class AddProductViewModel @Inject constructor(
         //getMixingLabourTypes()
 //        baseViewModel?.userName = initialName.value
 //        Log.d("Username from BaseViewModel", ": ${baseViewModel?.userName}")
+    }
+
+    fun GalleryIconClick(){
+        galleryStateOpen.value=true
     }
 
     fun addMixingLabourToList(){

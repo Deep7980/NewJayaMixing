@@ -94,6 +94,7 @@ import coil.compose.rememberImagePainter
 import com.jaya.app.jayamixing.BuildConfig
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.BackPressHandler
+import com.jaya.app.jayamixing.extensions.ImageCaptureDialog
 import com.jaya.app.jayamixing.extensions.screenHeight
 import com.jaya.app.jayamixing.extensions.screenWidth
 import com.jaya.app.jayamixing.presentation.ui.custom_view.CuttingManDropDown
@@ -122,6 +123,13 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
     val currentShiftState = remember { mutableStateOf(viewModel.isShiftAselected.value) }
 
     BackPressHandler(onBackPressed = {viewModel.onBackDialog()})
+
+    if(viewModel.showDialog.value){
+        ImageCaptureDialog(
+            setShowDialog = {viewModel.showDialog.value=it},
+            viewModel
+        )
+    }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -983,7 +991,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
                 ){
                     //RequestContentPermission(viewModel)
-                    PickImageFromCamera()
+                    PickImageFromCamera(viewModel)
                     //cameraButtonClick(viewModel)
 
                 }
@@ -1012,6 +1020,24 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
         }
 
     }
+    if(viewModel.galleryStateOpen.value){
+        pickImage()
+        viewModel.showDialog.value=false
+    }
+}
+
+@Composable
+fun pickImage(){
+    var bitmap  by remember{ mutableStateOf<Bitmap?>(null)}
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()){
+        bitmap = it
+    }
+    launcher.launch()
+    bitmap?.let {
+        Image(bitmap = bitmap?.asImageBitmap()!!, contentDescription = "", modifier = Modifier.size(200.dp))
+    }
 }
 
 //@Composable
@@ -1037,7 +1063,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 //}
 
 @Composable
-fun PickImageFromCamera() {
+fun PickImageFromCamera(viewModel:AddProductViewModel) {
     var bitmap  by remember{ mutableStateOf<Bitmap?>(null)}
     val uploadImageTextState = remember { mutableStateOf(true) }
     val launcher = rememberLauncherForActivityResult(
@@ -1049,8 +1075,10 @@ fun PickImageFromCamera() {
         modifier = Modifier.fillMaxWidth()
     ) {
         Button(onClick = {
-            launcher.launch()
-            uploadImageTextState.value = false},
+               viewModel.showDialog.value=true
+//            launcher.launch()
+//            uploadImageTextState.value = false
+            },
             colors = ButtonDefaults.outlinedButtonColors(containerColor= Color.White),
             modifier = Modifier
                 .padding(end = 10.dp)
