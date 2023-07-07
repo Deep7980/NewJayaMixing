@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Color.Companion.Yellow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -77,6 +78,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.BackPressHandler
 import com.jaya.app.jayamixing.extensions.Image
+import com.jaya.app.jayamixing.extensions.Text
 import com.jaya.app.jayamixing.presentation.ui.custom_view.CuttingManDropDown
 import com.jaya.app.jayamixing.presentation.ui.custom_view.FloorManagerDropdown
 import com.jaya.app.jayamixing.presentation.ui.custom_view.MixingManDropdown
@@ -344,10 +346,20 @@ fun DrawerComponent(
                     viewModel.onLogoutFromDashboard()
                 }) {
 
-                Text(
-                    text = "Logout",
-                    color = Color.White,
-                    fontSize = 17.sp,
+//                Text(
+//                    text = R.string.logout.toString(),
+//                    color = Color.White,
+//                    fontSize = 17.sp,
+//                    modifier = Modifier
+//                        .align(Alignment.CenterVertically)
+//                        .padding(start = 20.dp)
+//                        .weight(1f)
+//                )
+                R.string.logout.Text(
+                    style = TextStyle(
+                        color = Color.White,
+                        fontSize = 17.sp,
+                    ),
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(start = 20.dp)

@@ -1,6 +1,6 @@
 package com.jaya.app.core.domain.model
 
-data class GetOtpModel(
+data class GetLoginModel(
     val isUser: Boolean,
     val message: String,
     val otp: String,

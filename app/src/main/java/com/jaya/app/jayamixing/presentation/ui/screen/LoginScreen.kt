@@ -256,7 +256,7 @@ fun LoginScreen(
                             viewModel.loadingg.value=true
                             baseViewModel.storedLoginEmail.value=viewModel.emailText.value
                             baseViewModel.storedLoginPassword.value=viewModel.password.value
-                            viewModel.getOtp()
+                            viewModel.loginIntoApp()
 
                             val timer = object : CountDownTimer(5000, 1000) {
                                 override fun onTick(millisUntilFinished: Long) {

@@ -53,9 +53,9 @@ class LoginUseCases @Inject constructor(
 //        }
 //    }
 
-    fun getOtp() = flow {
+    fun login() = flow {
         emit(DataEntry(EmitType.Loading, true))
-        when (val response = loginRepository.getOtp()) {
+        when (val response = loginRepository.login()) {
             is Resource.Success -> {
                 emit(DataEntry(EmitType.Loading, false))
                 response.data?.apply {

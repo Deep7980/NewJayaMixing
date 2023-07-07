@@ -1,5 +1,10 @@
 package com.jaya.app.jayamixing.presentation.viewmodels
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +57,7 @@ class AddProductViewModel @Inject constructor(
     private val addProductUseCases: AddProductUseCases,
     private val appNavigator: AppNavigator,
     savedStateHandle: SavedStateHandle
-):ViewModel() {
+) : ViewModel() {
 
     var mixingLabourSearchQuery by mutableStateOf(TextFieldValue(""))
     var cuttingLabourSearchQuery by mutableStateOf(TextFieldValue(""))
@@ -64,8 +69,8 @@ class AddProductViewModel @Inject constructor(
 //    val floorTypes = _floorTypesList.asStateFlow()
 
     val addProductBack = mutableStateOf<MyDialog?>(null)
-    var mixingLabourList= mutableStateListOf<String>()
-    var cuttingLabourList= mutableStateListOf<String>()
+    var mixingLabourList = mutableStateListOf<String>()
+    var cuttingLabourList = mutableStateListOf<String>()
     var mixingLabourTextName = mutableStateOf("")
     var cuttingLabourName = mutableStateOf("")
 
@@ -125,12 +130,16 @@ class AddProductViewModel @Inject constructor(
     private val _cuttingLabourList = MutableStateFlow(emptyList<CuttingLabourList>())
     val cuttingLabours = _cuttingLabourList.asStateFlow()
 
+    private val _capturedImages = MutableStateFlow(mutableListOf<Bitmap>())
+    val capturedImages = _capturedImages.asStateFlow()
+    var capturedImagesList= mutableStateListOf<Bitmap>()
+
     val selectedMixingLabourList = mutableStateListOf<String>()
     val selectedCuttingLabourList = mutableStateListOf<String>()
     val chooseImage = mutableStateOf<MyDialog?>(null)
     val imageChooserDialogHandler = mutableStateOf<MyDialog?>(null)
     val selectedImageSource = mutableStateOf(ImageSource.None)
-    val galleryStateOpen = mutableStateOf(false)
+    val cameraStateOpen = mutableStateOf(false)
     var dataLoading by mutableStateOf(false)
         private set
 
@@ -144,17 +153,19 @@ class AddProductViewModel @Inject constructor(
         getCuttingManTypes()
         getOvenManTypes()
         getPackingSupervisorTypes()
+
         //getMixingLabourTypes()
 //        baseViewModel?.userName = initialName.value
 //        Log.d("Username from BaseViewModel", ": ${baseViewModel?.userName}")
     }
 
-    fun GalleryIconClick(){
-        galleryStateOpen.value=true
-    }
+//    fun cameraIconClick() {
+//        cameraStateOpen.value = true
+//        showDialog.value = false
+//    }
 
-    fun addMixingLabourToList(){
-        if(mixingLabourSearchQuery.text.isNotEmpty()){
+    fun addMixingLabourToList() {
+        if (mixingLabourSearchQuery.text.isNotEmpty()) {
             selectedMixingLabourList.add(mixingLabourSearchQuery.text)
             mixingLabourSearchQuery = mixingLabourSearchQuery.copy(
                 text = ""
@@ -162,17 +173,15 @@ class AddProductViewModel @Inject constructor(
         }
     }
 
-    fun addCuttingLabourToList(){
+    fun addCuttingLabourToList() {
 
-        if(cuttingLabourSearchQuery.text.isNotEmpty()){
+        if (cuttingLabourSearchQuery.text.isNotEmpty()) {
             selectedCuttingLabourList.add(cuttingLabourSearchQuery.text)
             cuttingLabourSearchQuery = cuttingLabourSearchQuery.copy(
                 text = ""
             )
         }
     }
-
-
 
 
     fun onBackDialog() {
@@ -187,7 +196,7 @@ class AddProductViewModel @Inject constructor(
         handleDialogEvents()
     }
 
-    fun backToDashboardPage(){
+    fun backToDashboardPage() {
         appNavigator.tryNavigateTo(
             route = Destination.Dashboard(),
             //popUpToRoute = Destination.AddProduct(),
@@ -196,24 +205,11 @@ class AddProductViewModel @Inject constructor(
         )
         viewModelScope.launch {
             delay(2000L)
-            dataLoading=false
+            dataLoading = false
         }
     }
 
-    fun chooseImageDialog(){
-        chooseImage.value = MyDialog(
-            data = DialogData(
-                title = "Choose Image",
-                message = "",
-                positive = "Camera",
-                negative = "Gallery"
-
-            )
-        )
-        //handleDialogEvents()
-    }
-
-    fun navigate(){
+    fun navigate() {
         appNavigator.tryNavigateTo(
             route = Destination.Dashboard(),
             // popUpToRoute = Destination.Dashboard(),
@@ -222,7 +218,7 @@ class AddProductViewModel @Inject constructor(
         )
     }
 
-    fun confirmSubmit(){
+    fun confirmSubmit() {
         appNavigator.tryNavigateTo(
             route = Destination.Completed(),
             isSingleTop = true,
@@ -253,7 +249,7 @@ class AddProductViewModel @Inject constructor(
 
                     EmitType.Loading -> {
                         it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
-                           dataLoading = it
+                            dataLoading = it
                         }
                     }
 
@@ -270,17 +266,19 @@ class AddProductViewModel @Inject constructor(
                 }
             }.launchIn(viewModelScope)
     }
+
     private fun getFloorTypes() {
         addProductUseCases.getFloorTypes()
             .flowOn(Dispatchers.IO)
             .onEach {
-                when(it.type){
-                    EmitType.FLOOR_LIST ->{
+                when (it.type) {
+                    EmitType.FLOOR_LIST -> {
                         it.value?.castListToRequiredTypes<FloorManagerType>()?.let { floors ->
                             _floorTypesList.update { floors }
                             Log.d("FloorTypeList", "getFloorTypes: ${floors.toList()}")
                         }
                     }
+
                     EmitType.Loading -> {
                         it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
                             dataLoading = it
@@ -294,6 +292,7 @@ class AddProductViewModel @Inject constructor(
                             }
                         }
                     }
+
                     else -> {}
                 }
             }.launchIn(viewModelScope)
@@ -303,8 +302,8 @@ class AddProductViewModel @Inject constructor(
         addProductUseCases.getMixingManTypes()
             .flowOn(Dispatchers.IO)
             .onEach {
-                when(it.type){
-                    EmitType.MIXING_MAN_LIST ->{
+                when (it.type) {
+                    EmitType.MIXING_MAN_LIST -> {
                         it.value?.castListToRequiredTypes<MixingMantype>()?.let { man ->
                             _mixingManList.update { man }
                             Log.d("FloorTypeList", "getFloorTypes: ${man.toList()}")
@@ -324,6 +323,7 @@ class AddProductViewModel @Inject constructor(
                             }
                         }
                     }
+
                     else -> {}
                 }
             }.launchIn(viewModelScope)
@@ -333,8 +333,8 @@ class AddProductViewModel @Inject constructor(
         addProductUseCases.getCuttingManTypes()
             .flowOn(Dispatchers.IO)
             .onEach {
-                when(it.type){
-                    EmitType.CUTTING_MAN_LIST ->{
+                when (it.type) {
+                    EmitType.CUTTING_MAN_LIST -> {
                         it.value?.castListToRequiredTypes<CuttingManTypes>()?.let { cuttingMan ->
                             _cuttingManList.update { cuttingMan }
                             Log.d("FloorTypeList", "getFloorTypes: ${cuttingMan.toList()}")
@@ -354,6 +354,7 @@ class AddProductViewModel @Inject constructor(
                             }
                         }
                     }
+
                     else -> {}
                 }
             }.launchIn(viewModelScope)
@@ -363,8 +364,8 @@ class AddProductViewModel @Inject constructor(
         addProductUseCases.getOvenManTypes()
             .flowOn(Dispatchers.IO)
             .onEach {
-                when(it.type){
-                    EmitType.OVEN_MAN_LIST ->{
+                when (it.type) {
+                    EmitType.OVEN_MAN_LIST -> {
                         it.value?.castListToRequiredTypes<OvenManType>()?.let { ovenMan ->
                             _ovenManList.update { ovenMan }
                             Log.d("FloorTypeList", "getFloorTypes: ${ovenMan.toList()}")
@@ -384,6 +385,7 @@ class AddProductViewModel @Inject constructor(
                             }
                         }
                     }
+
                     else -> {}
                 }
             }.launchIn(viewModelScope)
@@ -393,12 +395,16 @@ class AddProductViewModel @Inject constructor(
         addProductUseCases.getPackingSupervisorTypes()
             .flowOn(Dispatchers.IO)
             .onEach {
-                when(it.type){
-                    EmitType.PACKING_SUPERVISOR_LIST ->{
-                        it.value?.castListToRequiredTypes<PackingSupervisorTypes>()?.let { packingSupervisor ->
-                            _packingSupervisorList.update { packingSupervisor }
-                            Log.d("PackagingSupervisorList", "PackagingSupervisorList: ${packingSupervisor.toList()}")
-                        }
+                when (it.type) {
+                    EmitType.PACKING_SUPERVISOR_LIST -> {
+                        it.value?.castListToRequiredTypes<PackingSupervisorTypes>()
+                            ?.let { packingSupervisor ->
+                                _packingSupervisorList.update { packingSupervisor }
+                                Log.d(
+                                    "PackagingSupervisorList",
+                                    "PackagingSupervisorList: ${packingSupervisor.toList()}"
+                                )
+                            }
                     }
 
                     EmitType.Loading -> {
@@ -414,26 +420,30 @@ class AddProductViewModel @Inject constructor(
                             }
                         }
                     }
+
                     else -> {}
                 }
             }.launchIn(viewModelScope)
     }
 
     @OptIn(FlowPreview::class)
-    fun getMixingLabourTypes(query:TextFieldValue) {
+    fun getMixingLabourTypes(query: TextFieldValue) {
         Log.d("TESTING", "loadData: $query")
-        mixingLabourSearchQuery=query
-        loadMixingLabourListState.value=true
+        mixingLabourSearchQuery = query
+        loadMixingLabourListState.value = true
         addProductUseCases.getMixingLabourTypes(query.text)
             .flowOn(Dispatchers.IO)
             .debounce(500L)
             .onEach {
-                when(it.type){
-                    EmitType.MIXING_LABOUR_LIST ->{
+                when (it.type) {
+                    EmitType.MIXING_LABOUR_LIST -> {
                         it.value?.castListToRequiredTypes<MixingLabourList>()?.let { mixingLabour ->
                             _mixingLabourList.update { mixingLabour }
-                           // mixingLabourTextName.value = mixingLabourName
-                            Log.d("MixingLabourList", "Mixing Labour List: ${mixingLabour.toList()}")
+                            // mixingLabourTextName.value = mixingLabourName
+                            Log.d(
+                                "MixingLabourList",
+                                "Mixing Labour List: ${mixingLabour.toList()}"
+                            )
                         }
 //
                     }
@@ -441,10 +451,11 @@ class AddProductViewModel @Inject constructor(
                     EmitType.Loading -> {
                         it.value?.apply {
                             castValueToRequiredTypes<Boolean>()?.let {
-                                isDataLoaded.value=it
+                                isDataLoaded.value = it
                             }
                         }
                     }
+
                     else -> {
 
                     }
@@ -460,38 +471,43 @@ class AddProductViewModel @Inject constructor(
             selection = TextRange(item.name.length)
         )
         isSelectedMixingLabour.value = true
-        loadMixingLabourListState.value=false
+        loadMixingLabourListState.value = false
 //        selectedMixingLabourList.add(item.name)
 //        Log.d("selectedVendorList", "selectedVendorList: ${selectedMixingLabourList.toList()}")
 
     }
 
     @OptIn(FlowPreview::class)
-    fun getCuttingLabourTypes(query:TextFieldValue) {
+    fun getCuttingLabourTypes(query: TextFieldValue) {
         Log.d("TESTING", "loadData: $query")
-        cuttingLabourSearchQuery=query
-        loadCuttingLabourListState.value=true
+        cuttingLabourSearchQuery = query
+        loadCuttingLabourListState.value = true
         addProductUseCases.getCuttingLabourTypes(query.text)
             .flowOn(Dispatchers.IO)
             .debounce(500L)
             .onEach {
-                when(it.type){
-                    EmitType.CUTTING_LABOUR_LIST ->{
-                        it.value?.castListToRequiredTypes<CuttingLabourList>()?.let { cuttingLabour ->
-                            _cuttingLabourList.update { cuttingLabour }
-                            // mixingLabourTextName.value = mixingLabourName
-                            Log.d("MixingLabourList", "Mixing Labour List: ${cuttingLabour.toList()}")
-                        }
+                when (it.type) {
+                    EmitType.CUTTING_LABOUR_LIST -> {
+                        it.value?.castListToRequiredTypes<CuttingLabourList>()
+                            ?.let { cuttingLabour ->
+                                _cuttingLabourList.update { cuttingLabour }
+                                // mixingLabourTextName.value = mixingLabourName
+                                Log.d(
+                                    "MixingLabourList",
+                                    "Mixing Labour List: ${cuttingLabour.toList()}"
+                                )
+                            }
 //
                     }
 
                     EmitType.Loading -> {
                         it.value?.apply {
                             castValueToRequiredTypes<Boolean>()?.let {
-                                isDataLoaded.value=it
+                                isDataLoaded.value = it
                             }
                         }
                     }
+
                     else -> {
 
                     }
@@ -507,9 +523,44 @@ class AddProductViewModel @Inject constructor(
             selection = TextRange(item.name.length)
         )
         isSelectedCuttingLabour.value = true
-        loadCuttingLabourListState.value=false
+        loadCuttingLabourListState.value = false
 //        selectedMixingLabourList.add(item.name)
 //        Log.d("selectedVendorList", "selectedVendorList: ${selectedMixingLabourList.toList()}")
 
+    }
+
+    fun onImageCaptured(bitmap: Bitmap?) {
+        showDialog.value = false
+        if (bitmap != null) {
+            capturedImagesList.add(bitmap)
+            _capturedImages.update {
+                val tmp = it.toMutableList()
+                tmp.add(bitmap)
+                tmp
+            }
+        }
+    }
+
+    fun onGalleryImageCaptured(uri: Uri?){
+        showDialog.value = false
+        if(uri != null){
+            if (Build.VERSION.SDK_INT < 28)
+            {
+                MediaStore.Images.Media.getBitmap(com.jaya.app.jayamixing.application.JayaMixingApp.app?.applicationContext?.contentResolver,uri)
+            } else {
+                val source = com.jaya.app.jayamixing.application.JayaMixingApp.app?.applicationContext?.let {
+                    ImageDecoder.createSource(it.contentResolver,uri)
+                }
+                if (source != null) {
+                    val bitmapImage = ImageDecoder.decodeBitmap(source)
+                    capturedImagesList.add(bitmapImage)
+                    _capturedImages.update {
+                        val tmp = it.toMutableList()
+                        tmp.add(bitmapImage)
+                        tmp
+                    }
+                }
+            }
+        }
     }
 }

@@ -41,6 +41,7 @@ import com.jaya.app.jayamixing.extensions.screenHeight
 import com.jaya.app.jayamixing.extensions.screenWidth
 import com.jaya.app.jayamixing.extensions.upToBottom
 import com.jaya.app.jayamixing.presentation.viewmodels.AddProductViewModel
+import com.jaya.app.jayamixing.presentation.viewmodels.BaseViewModel
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -48,6 +49,7 @@ fun FloorManagerDropdown(
     viewModel: AddProductViewModel,
     loading: Boolean,
     dataList: List<FloorManagerType>,
+    baseViewModel: BaseViewModel,
     onSelect: (String) -> Unit
 ) {
 
@@ -57,6 +59,7 @@ fun FloorManagerDropdown(
     //  mSelectedText=baseViewModel.prefilledExpenseType
     if (mSelectedText.isEmpty()) {
         mSelectedText = viewModel.selectedFloor.value
+
     }
 
     val icon = if (mExpanded)

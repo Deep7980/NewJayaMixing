@@ -6,7 +6,7 @@ import com.jaya.app.core.domain.model.CuttingLabourList
 import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerType
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
-import com.jaya.app.core.domain.model.GetOtpModel
+import com.jaya.app.core.domain.model.GetLoginModel
 import com.jaya.app.core.domain.model.MixingLabourList
 import com.jaya.app.core.domain.model.MixingLabourModel
 import com.jaya.app.core.domain.model.MixingManTypesModel
@@ -27,7 +27,7 @@ interface MyApiList {
     suspend fun getAppVersion(): AppVersionModel
 
     @GET("b5c867c3bf0cda68eda5")
-    suspend fun getOtp(): GetOtpModel
+    suspend fun getOtp(): GetLoginModel
 
     @GET("2e71ccced6e82f10cb90")
     suspend fun verifyOtp(): VerifyOtpModel

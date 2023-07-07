@@ -1,20 +1,17 @@
 package com.jaya.app.jayamixing.presentation.ui.screen
 
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -31,9 +28,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -41,15 +42,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -63,6 +68,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -75,6 +81,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -89,12 +96,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.jaya.app.jayamixing.BuildConfig
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.BackPressHandler
+import com.jaya.app.jayamixing.extensions.Image
 import com.jaya.app.jayamixing.extensions.ImageCaptureDialog
+import com.jaya.app.jayamixing.extensions.Text
 import com.jaya.app.jayamixing.extensions.screenHeight
 import com.jaya.app.jayamixing.extensions.screenWidth
 import com.jaya.app.jayamixing.presentation.ui.custom_view.CuttingManDropDown
@@ -108,26 +118,30 @@ import com.jaya.app.jayamixing.presentation.viewmodels.AddProductViewModel
 import com.jaya.app.jayamixing.presentation.viewmodels.BaseViewModel
 import com.jaya.app.jayamixing.ui.theme.AppBarYellow
 import com.jaya.app.jayamixing.ui.theme.LogoutRed
+import com.jaya.app.jayamixing.ui.theme.Secondary
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
+import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.Objects
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
-fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewModel) {
+fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewModel) {
 
     val context = LocalContext.current
     val textState = remember { mutableStateOf(TextFieldValue("")) }
-    val mCheckedState = remember{ mutableStateOf(false)}
+    val mCheckedState = remember { mutableStateOf(false) }
     val currentShiftState = remember { mutableStateOf(viewModel.isShiftAselected.value) }
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    BackPressHandler(onBackPressed = { viewModel.onBackDialog() })
 
-    BackPressHandler(onBackPressed = {viewModel.onBackDialog()})
 
-    if(viewModel.showDialog.value){
+    if (viewModel.showDialog.value) {
         ImageCaptureDialog(
-            setShowDialog = {viewModel.showDialog.value=it},
-            viewModel
+            setShowDialog = { viewModel.showDialog.value = it },
+            onImageCaptured = viewModel::onImageCaptured,
+            onGalleryImageCapturd = viewModel::onGalleryImageCaptured
         )
     }
     Column(
@@ -156,7 +170,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     viewModel.shiftCBtnBackColor.value = Color.White
                     viewModel.shiftCTxtColor.value = Color.DarkGray
 
-                    viewModel.selectedFloor.value = "Floor Manager"
+                    //viewModel.selectedFloor.value = "Floor Manager"
 
                     currentShiftState.value = true
 
@@ -167,10 +181,11 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                 elevation = ButtonDefaults.buttonElevation(20.dp)
 
             ) {
-                Text(
-                    text = "Shift A",
-                    color = viewModel.shiftATxtColor.value,
-                    fontSize = 15.sp
+                R.string.shift_A.Text(
+                    style = TextStyle(
+                        color = viewModel.shiftATxtColor.value,
+                        fontSize = 15.sp
+                    )
                 )
             }
 
@@ -192,8 +207,9 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     viewModel.shiftCBtnBackColor.value = Color.White
                     viewModel.shiftCTxtColor.value = Color.DarkGray
 
-                    viewModel.selectedFloor.value = ""
-                    Toast.makeText(context,"Shift B selected",Toast.LENGTH_SHORT).show()
+
+                    //viewModel.selectedFloor.value = ""
+                    //Toast.makeText(context, "Shift B selected", Toast.LENGTH_SHORT).show()
 
                 },
                 colors = ButtonDefaults.buttonColors(viewModel.shiftBBtnBackColor.value),
@@ -201,10 +217,11 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                 elevation = ButtonDefaults.buttonElevation(20.dp)
 
             ) {
-                Text(
-                    text = "Shift B",
-                    color = viewModel.shiftBTxtColor.value,
-                    fontSize = 15.sp
+                R.string.shift_B.Text(
+                    style = TextStyle(
+                        color = viewModel.shiftBTxtColor.value,
+                        fontSize = 15.sp
+                    )
                 )
             }
 
@@ -226,7 +243,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     viewModel.shiftABtnBackColor.value = Color.White
                     viewModel.shiftATxtColor.value = Color.DarkGray
 
-                    Toast.makeText(context,"Shift C selected",Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, "Shift C selected", Toast.LENGTH_SHORT).show()
 
                 },
                 colors = ButtonDefaults.buttonColors(viewModel.shiftCBtnBackColor.value),
@@ -234,10 +251,16 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                 elevation = ButtonDefaults.buttonElevation(20.dp)
 
             ) {
-                Text(
-                    text = "Shift C",
-                    color = viewModel.shiftCTxtColor.value,
-                    fontSize = 15.sp
+//                Text(
+//                    text = "Shift C",
+//                    color = viewModel.shiftCTxtColor.value,
+//                    fontSize = 15.sp
+//                )
+                R.string.shift_C.Text(
+                    style = TextStyle(
+                        color = viewModel.shiftCTxtColor.value,
+                        fontSize = 15.sp
+                    )
                 )
             }
 
@@ -288,7 +311,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                         listOf("Plant1", "Plant2", "Plant3", "Plant4"),
                         viewModel,
                         onSelect = {
-                            baseViewModel.getStartedSelectedPlant.value=it
+                            baseViewModel.getStartedSelectedPlant.value = it
                             //Toast.makeText(context, baseViewModel.getStartedSelectedPlant.value, Toast.LENGTH_SHORT).show()
                             //viewModel.selectedPincode.value = it
                         })
@@ -296,13 +319,15 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
             }//row
         }//card
 
+
         Column(
-            modifier=Modifier.verticalScroll(rememberScrollState())
+            modifier = Modifier.verticalScroll(rememberScrollState())
         ) {
             FloorManagerDropdown(
                 viewModel,
                 false,
                 viewModel.floorTypes.collectAsState().value,
+                baseViewModel,
                 onSelect = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                     //viewModel.selectedPincode.value = it
@@ -310,8 +335,8 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
             ProductsDropdown(
                 viewModel,
-                false ,
-                viewModel.productTypes.collectAsState().value ,
+                false,
+                viewModel.productTypes.collectAsState().value,
                 onSelect = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
@@ -330,73 +355,41 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     .padding(top = 5.dp, start = 20.dp, bottom = 5.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = Color.DarkGray,
-                    unfocusedBorderColor = Color.Black)
+                    unfocusedBorderColor = Color.Black
+                )
             )
             MixingManDropdown(
                 viewModel,
-                false ,
-                viewModel.MixingManTypes.collectAsState().value ,
+                false,
+                viewModel.MixingManTypes.collectAsState().value,
                 onSelect = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
             CuttingManDropDown(
                 viewModel,
-                false ,
-                viewModel.CuttingManTypes.collectAsState().value ,
+                false,
+                viewModel.CuttingManTypes.collectAsState().value,
                 onSelect = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
             OvenManDropdown(
                 viewModel,
-                false ,
-                viewModel.OvenManTypes.collectAsState().value ,
+                false,
+                viewModel.OvenManTypes.collectAsState().value,
                 onSelect = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
             PackingSupervisorDropdown(
                 viewModel,
-                false ,
-                viewModel.PackingSupervisorTypes.collectAsState().value ,
+                false,
+                viewModel.PackingSupervisorTypes.collectAsState().value,
                 onSelect = {
                     Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
-
-//        Row(
-//            modifier = Modifier.padding(top = 5.dp, start = 20.dp)
-//        ) {
-//            OutlinedTextField(
-//                value = textState.value,
-//                onValueChange = {
-//                    textState.value = it
-//                },
-//                leadingIcon = {
-//                    Icon(Icons.Default.Search, contentDescription = null)
-//                },
-//                placeholder = { Text(text = "Mixing Labour")}
-//            )
-//            OutlinedButton(
-//                modifier = Modifier
-//                    .width(67.dp)
-//                    .height(57.dp)
-//                    .padding(start = 5.dp),
-//                shape = RoundedCornerShape(5.dp),
-//                onClick = { },
-//                colors = ButtonDefaults.buttonColors(SplashGreen),
-//                border = BorderStroke(0.5.dp, Color.LightGray),
-//                elevation = ButtonDefaults.buttonElevation(20.dp)
-//
-//            ) {
-//                Icon(
-//                    Icons.Filled.Add,
-//                    contentDescription = "Add",
-//                    modifier = Modifier.fillMaxSize()
-//                )
-//            }
-//        }
 
             Row(
                 modifier = Modifier
@@ -457,11 +450,13 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
             }
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-                val items= viewModel.mixingLabours.collectAsState().value
-                Column(modifier = Modifier
-                    .fillMaxWidth(),
+                val items = viewModel.mixingLabours.collectAsState().value
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top)
+                    verticalArrangement = Arrangement.Top
+                )
                 {
 
                     //// selected labours will show here....
@@ -469,15 +464,16 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 //                        Text(text = name)
 //                    }
 
-                    for ((index, mixingLaboursName) in viewModel.selectedMixingLabourList.withIndex() ) {
+                    for ((index, mixingLaboursName) in viewModel.selectedMixingLabourList.withIndex()) {
 
-                        Row(modifier = Modifier
-                            .padding(start = 20.dp, end = 20.dp, top = 10.dp)
-                            .fillMaxWidth()
+                        Row(
+                            modifier = Modifier
+                                .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                                .fillMaxWidth()
 
                         ) {
                             Text(
-                                text = "${index+1}. $mixingLaboursName",
+                                text = "${index + 1}. $mixingLaboursName",
                                 modifier = Modifier
                                     .weight(1f)
                                     .align(Alignment.CenterVertically),
@@ -512,86 +508,86 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
 
                 }
-                AnimatedContent(targetState = items.isNotEmpty()) {state->
-                   when(state) {
-                       true -> Column(
-                           modifier = Modifier.fillMaxWidth(.90f),
-                           horizontalAlignment = Alignment.CenterHorizontally,
-                           verticalArrangement = Arrangement.Top)
-                       {
-                           if(viewModel.mixingLabourSearchQuery.text.isNotEmpty()){
-                               items.forEach { item ->
-                                   TextButton(
-                                       onClick = {
-                                           viewModel.onSelectMixingLabour(item)
-                                       },
-                                       modifier = Modifier
-                                           .fillMaxWidth()
-                                           .background(Color.LightGray))
-                                   {
-                                       Column {
-                                           Text(text = item.name, color = Color.Black)
-                                           Divider(
-                                               color = Color.Black,
-                                               thickness = 0.5.dp,
-                                               modifier = Modifier.padding(top = 10.dp)
-                                           )
-                                       }
+                AnimatedContent(targetState = items.isNotEmpty()) { state ->
+                    when (state) {
+                        true -> Column(
+                            modifier = Modifier.fillMaxWidth(.90f),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Top
+                        )
+                        {
+                            if (viewModel.mixingLabourSearchQuery.text.isNotEmpty()) {
+                                items.forEach { item ->
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.onSelectMixingLabour(item)
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.LightGray)
+                                    )
+                                    {
+                                        Column {
+                                            Text(text = item.name, color = Color.Black)
+                                            Divider(
+                                                color = Color.Black,
+                                                thickness = 0.5.dp,
+                                                modifier = Modifier.padding(top = 10.dp)
+                                            )
+                                        }
 
-                                   }
-                               }
-                           }
+                                    }
+                                }
+                            }
 
-                       }
-                       false -> {}
-                   }
+                        }
+
+                        false -> {}
+                    }
                 }
             }
             //row
 
-           /* for ((index, mixingLaboursName) in viewModel.mixingLabourList.withIndex() ) {
+            /* for ((index, mixingLaboursName) in viewModel.mixingLabourList.withIndex() ) {
 
-                Row(modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 10.dp)
-                    .fillMaxWidth()
+                 Row(modifier = Modifier
+                     .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                     .fillMaxWidth()
 
-                ) {
-                    Text(
-                        text = "${index+1}. $mixingLaboursName",
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically),
-                        //   .wrapContentSize(),
-                        fontSize = 17.sp,
-                        color = Color.DarkGray,
-                        // fontWeight = FontWeight.Bold
-                    )
-                    IconButton(onClick = {
-                        //  viewModel.showHidepasswordText.value = false
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.delete_labour_svg),
-                            contentDescription = null,
-                            tint = LogoutRed,
-                            modifier = Modifier
-                                .width(screenWidth * 0.15f)
-                                .align(Alignment.CenterVertically)
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = {
-                                        viewModel.mixingLabourList.removeAt(index)
-                                    },
-                                    role = Role.Image
-                                )
-                        )
-                    }
+                 ) {
+                     Text(
+                         text = "${index+1}. $mixingLaboursName",
+                         modifier = Modifier
+                             .weight(1f)
+                             .align(Alignment.CenterVertically),
+                         //   .wrapContentSize(),
+                         fontSize = 17.sp,
+                         color = Color.DarkGray,
+                         // fontWeight = FontWeight.Bold
+                     )
+                     IconButton(onClick = {
+                         //  viewModel.showHidepasswordText.value = false
+                     }) {
+                         Icon(
+                             painter = painterResource(id = R.drawable.delete_labour_svg),
+                             contentDescription = null,
+                             tint = LogoutRed,
+                             modifier = Modifier
+                                 .width(screenWidth * 0.15f)
+                                 .align(Alignment.CenterVertically)
+                                 .clickable(
+                                     indication = null,
+                                     interactionSource = remember { MutableInteractionSource() },
+                                     onClick = {
+                                         viewModel.mixingLabourList.removeAt(index)
+                                     },
+                                     role = Role.Image
+                                 )
+                         )
+                     }
 
-                }
-            }*/
-
-
-
+                 }
+             }*/
 
 
             //For Cutting Labours display--------------->
@@ -650,11 +646,13 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
             }
 
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-                val items= viewModel.cuttingLabours.collectAsState().value
-                Column(modifier = Modifier
-                    .fillMaxWidth(),
+                val items = viewModel.cuttingLabours.collectAsState().value
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top)
+                    verticalArrangement = Arrangement.Top
+                )
                 {
 
                     //// selected labours will show here....
@@ -662,15 +660,16 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 //                        Text(text = name)
 //                    }
 
-                    for ((index, cuttingLabourName) in viewModel.selectedCuttingLabourList.withIndex() ) {
+                    for ((index, cuttingLabourName) in viewModel.selectedCuttingLabourList.withIndex()) {
 
-                        Row(modifier = Modifier
-                            .padding(start = 20.dp, end = 20.dp, top = 10.dp)
-                            .fillMaxWidth()
+                        Row(
+                            modifier = Modifier
+                                .padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                                .fillMaxWidth()
 
                         ) {
                             Text(
-                                text = "${index+1}. $cuttingLabourName",
+                                text = "${index + 1}. $cuttingLabourName",
                                 modifier = Modifier
                                     .weight(1f)
                                     .align(Alignment.CenterVertically),
@@ -705,14 +704,15 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
 
                 }
-                AnimatedContent(targetState = items.isNotEmpty()) {state->
-                    when(state) {
+                AnimatedContent(targetState = items.isNotEmpty()) { state ->
+                    when (state) {
                         true -> Column(
                             modifier = Modifier.fillMaxWidth(.90f),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Top)
+                            verticalArrangement = Arrangement.Top
+                        )
                         {
-                            if(viewModel.cuttingLabourSearchQuery.text.isNotEmpty()){
+                            if (viewModel.cuttingLabourSearchQuery.text.isNotEmpty()) {
                                 items.forEach { item ->
                                     TextButton(
                                         onClick = {
@@ -720,7 +720,8 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                                         },
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .background(Color.LightGray))
+                                            .background(Color.LightGray)
+                                    )
                                     {
                                         Column {
                                             Text(text = item.name, color = Color.Black)
@@ -736,6 +737,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                             }
 
                         }
+
                         false -> {}
                     }
                 }
@@ -809,13 +811,13 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
                         checkedTrackColor = SplashGreen,
-                        uncheckedThumbColor =  Color.White,
-                        uncheckedTrackColor =  Color.Gray
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = Color.Gray
                     )
-                    )
+                )
             }
 
-            if(mCheckedState.value){
+            if (mCheckedState.value) {
                 Card(
                     border = BorderStroke(1.dp, Color.LightGray),
                     elevation = CardDefaults.cardElevation(defaultElevation = 20.dp),
@@ -862,8 +864,8 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
                             TextField(
                                 value = viewModel.leftAddedKG.value,
-                                onValueChange ={
-                                    if(it.length <=5)
+                                onValueChange = {
+                                    if (it.length <= 5)
                                         viewModel.leftAddedKG.value = it
                                 },
                                 colors = TextFieldDefaults.textFieldColors(
@@ -940,8 +942,8 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
 
                             TextField(
                                 value = viewModel.brokenAddedKG.value,
-                                onValueChange ={
-                                    if(it.length <=5)
+                                onValueChange = {
+                                    if (it.length <= 5)
                                         viewModel.brokenAddedKG.value = it
                                 },
                                 colors = TextFieldDefaults.textFieldColors(
@@ -975,23 +977,24 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     onValueChange = {
                         viewModel.productDesc.value = it
                     },
-                    placeholder = { Text(text = "Products", textAlign = TextAlign.Center)},
+                    placeholder = { Text(text = "Products", textAlign = TextAlign.Center) },
                     modifier = Modifier
                         .fillMaxWidth(0.95f)
                         .height(85.dp)
                         .padding(top = 5.dp, start = 20.dp, bottom = 20.dp),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = Color.DarkGray,
-                        unfocusedBorderColor = Color.Black)
+                        unfocusedBorderColor = Color.Black
+                    )
                 )//card
                 Row(
                     modifier = Modifier
                         .padding(start = 20.dp, end = 20.dp, bottom = 40.dp, top = 5.dp)
                         .fillMaxWidth(1f)
 
-                ){
+                ) {
                     //RequestContentPermission(viewModel)
-                    PickImageFromCamera(viewModel)
+                    uploadImageLayout(viewModel)
                     //cameraButtonClick(viewModel)
 
                 }
@@ -1003,7 +1006,7 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
                     .align(Alignment.CenterHorizontally)
                     .padding(bottom = 20.dp),
                 shape = RoundedCornerShape(5.dp),
-                onClick = {viewModel.confirmSubmit()},
+                onClick = { viewModel.confirmSubmit() },
                 colors = ButtonDefaults.buttonColors(SplashGreen),
                 border = BorderStroke(0.5.dp, Color.LightGray),
                 elevation = ButtonDefaults.buttonElevation(20.dp)
@@ -1020,25 +1023,132 @@ fun AddProductFormPage(viewModel:AddProductViewModel,baseViewModel: BaseViewMode
         }
 
     }
-    if(viewModel.galleryStateOpen.value){
-        pickImage()
-        viewModel.showDialog.value=false
-    }
+
 }
 
 @Composable
-fun pickImage(){
-    var bitmap  by remember{ mutableStateOf<Bitmap?>(null)}
+fun uploadImageLayout(viewModel: AddProductViewModel) {
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()){
-        bitmap = it
+    Row(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Button(
+            onClick = {
+                viewModel.showDialog.value = true
+//            launcher.launch()
+//            uploadImageTextState.value = false
+            },
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .width(70.dp)
+                .height(50.dp)
+                .align(Alignment.CenterVertically),
+            border = BorderStroke(width = 1.dp, color = Color.DarkGray),
+            shape = RoundedCornerShape(5.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.camera),
+                contentDescription = "camera",
+                modifier = Modifier.fillMaxSize(1f)
+            )
+        }
+        val imgs = viewModel.capturedImagesList
+        val context = LocalContext.current
+        LazyRow(
+            modifier = Modifier.wrapContentWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.Top
+        ) {
+            itemsIndexed(imgs) { index,bitmap ->
+                Box(contentAlignment = Alignment.TopEnd){
+                    Image(
+                        bitmap.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.size(100.dp)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_close_24),
+                        contentDescription = "",
+                        alignment = Alignment.TopEnd,
+                        modifier = Modifier
+                            .padding(end = 10.dp)
+                            .clickable { viewModel.capturedImagesList.removeAt(index) }
+                    )
+                    if (imgs.last() != bitmap) Spacer(modifier = Modifier.width(10.dp))
+                }
+
+            }
+        }
     }
-    launcher.launch()
-    bitmap?.let {
-        Image(bitmap = bitmap?.asImageBitmap()!!, contentDescription = "", modifier = Modifier.size(200.dp))
-    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        Spacer(modifier = Modifier.height(12.dp))
+//        if(uploadImageTextState.value){
+//            Text(text = "Upload Image", modifier = Modifier.padding(top = 15.dp))
+//        }else{
+//            bitmap?.let {
+//                Image(bitmap = bitmap?.asImageBitmap()!!, contentDescription = "", modifier = Modifier.size(200.dp))
+//            }
+//        }
+//        if(viewModel.galleryStateOpen.value){
+//            //pickImage()
+//            bitmap?.let {
+//                Image(bitmap = bitmap?.asImageBitmap()!!, contentDescription = "", modifier = Modifier.size(200.dp))
+//            }
+//            viewModel.showDialog.value=false
+//        }
+
+
+//@Composable
+//fun pickImage(){
+//    var bitmap  by remember{ mutableStateOf<Bitmap?>(null)}
+//
+//    val launcher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.TakePicturePreview()){
+//        bitmap = it
+//    }
+//    launcher.launch()
+//    bitmap?.let {
+//        Image(bitmap = bitmap?.asImageBitmap()!!, contentDescription = "", modifier = Modifier.size(200.dp))
+//    }
+//}
 
 //@Composable
 //fun cameraButtonClick(viewModel: AddProductViewModel){
@@ -1061,52 +1171,6 @@ fun pickImage(){
 //        )
 //    }
 //}
-
-@Composable
-fun PickImageFromCamera(viewModel:AddProductViewModel) {
-    var bitmap  by remember{ mutableStateOf<Bitmap?>(null)}
-    val uploadImageTextState = remember { mutableStateOf(true) }
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()){
-        bitmap = it
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Button(onClick = {
-               viewModel.showDialog.value=true
-//            launcher.launch()
-//            uploadImageTextState.value = false
-            },
-            colors = ButtonDefaults.outlinedButtonColors(containerColor= Color.White),
-            modifier = Modifier
-                .padding(end = 10.dp)
-                .width(70.dp)
-                .height(50.dp)
-                .align(Alignment.CenterVertically),
-            border = BorderStroke(width = 1.dp,color = Color.DarkGray),
-            shape = RoundedCornerShape(5.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.camera),
-                contentDescription = "camera",
-                modifier = Modifier.fillMaxSize(1f)
-            )
-        }
-
-//        Spacer(modifier = Modifier.height(12.dp))
-        if(uploadImageTextState.value){
-            Text(text = "Upload Image", modifier = Modifier.padding(top = 15.dp))
-        }else{
-            bitmap?.let {
-                Image(bitmap = bitmap?.asImageBitmap()!!, contentDescription = "", modifier = Modifier.size(200.dp))
-            }
-        }
-
-    }
-
-}
 
 
 

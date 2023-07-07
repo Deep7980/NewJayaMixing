@@ -55,39 +55,39 @@ class OtpUseCases @Inject constructor(
         }
     }
 
-    fun resendOtp() = flow {
-        emit(DataEntry(EmitType.Loading, true))
-        when (val response = loginRepository.getOtp()) {
-            is Resource.Success -> {
-                emit(DataEntry(EmitType.Loading, false))
-                response.data?.apply {
-                    when (status) {
-                        true -> {
-                            if (isUser) {
-                                emit(DataEntry(type = EmitType.BackendSuccess, value ="OTP=$otp"))
-                            } else {
-                                emit(DataEntry(type = EmitType.BackendError, value =message))
-                            }
-                        }
-
-                        else -> {
-                            emit(DataEntry(type = EmitType.BackendError, value = message))
-                        }
-                    }
-                }
-            }
-
-            is Resource.Error -> {
-                handleFailedResponse(
-                    response = response,
-                    message = response.message,
-                    emitType = EmitType.NetworkError
-                )
-            }
-
-            else -> {
-
-            }
-        }
-    }
+//    fun resendOtp() = flow {
+//        emit(DataEntry(EmitType.Loading, true))
+//        when (val response = loginRepository.getOtp()) {
+//            is Resource.Success -> {
+//                emit(DataEntry(EmitType.Loading, false))
+//                response.data?.apply {
+//                    when (status) {
+//                        true -> {
+//                            if (isUser) {
+//                                emit(DataEntry(type = EmitType.BackendSuccess, value ="OTP=$otp"))
+//                            } else {
+//                                emit(DataEntry(type = EmitType.BackendError, value =message))
+//                            }
+//                        }
+//
+//                        else -> {
+//                            emit(DataEntry(type = EmitType.BackendError, value = message))
+//                        }
+//                    }
+//                }
+//            }
+//
+//            is Resource.Error -> {
+//                handleFailedResponse(
+//                    response = response,
+//                    message = response.message,
+//                    emitType = EmitType.NetworkError
+//                )
+//            }
+//
+//            else -> {
+//
+//            }
+//        }
+//    }
 }

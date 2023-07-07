@@ -79,9 +79,9 @@ class LoginViewModel @Inject constructor(
         return loginBtnState.value
     }
 
-    fun getOtp() {
+    fun loginIntoApp() {
         // viewModelScope.launch {
-        loginUseCases.getOtp()
+        loginUseCases.login()
             .flowOn(Dispatchers.IO)
             .onEach {
                 when (it.type) {

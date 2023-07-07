@@ -9,4 +9,8 @@
     <string name="record_submission_message">Thank you, your record has\n been submitted.</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
+    <string name="logout">Logout</string>
+    <string name="shift_A">Shift A</string>
+    <string name="shift_B">Shift B</string>
+    <string name="shift_C">Shift C</string>
 </resources>
