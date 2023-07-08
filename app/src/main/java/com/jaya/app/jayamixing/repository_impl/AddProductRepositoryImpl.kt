@@ -1,6 +1,8 @@
 package com.jaya.app.jayamixing.repository_impl
 
+import android.graphics.Bitmap
 import com.jaya.app.core.common.Resource
+import com.jaya.app.core.domain.model.AddDetailsModel
 import com.jaya.app.core.domain.model.CuttingLabourList
 import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
@@ -95,5 +97,29 @@ class AddProductRepositoryImpl @Inject constructor(
                     .contains(Regex(query.lowercase().trim()))
             }
         }.toList()
+    }
+
+    override suspend fun submitPackingDetails(
+        user_id: String,
+        shift: String,
+        plant: String,
+        floorManager_name: String,
+        products_name: String,
+        mixing_man: String,
+        cutting_man: String,
+        oven_man: String,
+        packingSupervisor_name: String,
+        mixingLabourList: List<String>,
+        cuttingLabourList: List<String>,
+        leftDoughValue: String,
+        brokenAddedValue: String,
+        productDesc: String,
+        productImage: List<Bitmap>
+    ): Resource<AddDetailsModel> {
+        return try {
+            Resource.Success(myApiList.submitMixingDetails(user_id,shift,plant,floorManager_name,products_name,mixing_man, cutting_man, oven_man, packingSupervisor_name, mixingLabourList, cuttingLabourList, leftDoughValue, brokenAddedValue, productDesc, productImage))
+        } catch (ex: Exception) {
+            Resource.Error(message = ex.message)
+        }
     }
 }
