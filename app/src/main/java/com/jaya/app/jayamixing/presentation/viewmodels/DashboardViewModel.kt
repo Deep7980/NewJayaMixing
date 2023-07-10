@@ -159,7 +159,6 @@ class DashboardViewModel @Inject constructor(
                     EmitType.USER_DATA -> {
                         it.value?.castValueToRequiredTypes<UserData>()?.let {
                             userName.value = it.name
-                            userId.value = it.user_id
                             emailId.value = it.email
                             designation.value = it.designation
                             //baseViewModel?.userName = it.name

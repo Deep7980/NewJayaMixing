@@ -138,7 +138,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
 
 
     if (viewModel.showDialog.value) {
-        ImageCaptureDialog(
+        ImageCaptureDialog(  
             setShowDialog = { viewModel.showDialog.value = it },
             onImageCaptured = viewModel::onImageCaptured,
             onGalleryImageCapturd = viewModel::onGalleryImageCaptured
@@ -343,7 +343,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
             )
 
             OutlinedTextField(
-                value = viewModel.initialName.value,
+                value = viewModel.superVisorName.value,
                 onValueChange = {
                     viewModel.initialName.value = it
                 },

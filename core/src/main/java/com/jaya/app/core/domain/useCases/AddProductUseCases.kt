@@ -1,5 +1,6 @@
 package com.jaya.app.core.domain.useCases
 
+import android.util.Log
 import com.jaya.app.core.common.DataEntry
 import com.jaya.app.core.common.EmitType
 import com.jaya.app.core.common.Resource
@@ -13,6 +14,89 @@ class AddProductUseCases @Inject constructor(
     private val appStore: AppStore,
     private val addProductRepository: AddProductRepository
 ) {
+
+    fun getSupervisorPrefilledData(userId:String) = flow{
+        emit(DataEntry(EmitType.Loading, true))
+        when (val response = addProductRepository.getSupervisorPrefilledData(userId)) {//appStore.userId()
+            //when (val response =
+            is Resource.Success -> {
+                emit(DataEntry(EmitType.Loading, false))
+                response.data?.apply {
+                    Log.d("responseData", "getSupervisorPrefilledData: ${response.data.message}")
+                    when (status) {
+                        true -> {
+//                            emit(DataEntry(type = EmitType.ALL_DETAILS, value = supervisorPrefilledDataResponse))
+                            emit(
+                                DataEntry(
+                                    type = EmitType.FLOOR_LIST,
+                                    supervisorPrefilledDataResponse.floorManagerList
+                                )
+                            )
+                            emit(
+                                DataEntry(
+                                    type = EmitType.PRODUCT_TYPES,
+                                    supervisorPrefilledDataResponse.productsList
+                                )
+                            )
+
+                            emit(
+                                DataEntry(
+                                    type = EmitType.SUPERVISOR_NAME,
+                                    supervisorPrefilledDataResponse.superVisorName
+                                )
+                            )
+
+                            emit(
+                                DataEntry(
+                                    type = EmitType.MIXING_MAN_LIST,
+                                    supervisorPrefilledDataResponse.mixingManList
+                                )
+                            )
+
+                            emit(
+                                DataEntry(
+                                    type = EmitType.CUTTING_MAN_LIST,
+                                    supervisorPrefilledDataResponse.cuttingManList
+                                )
+                            )
+
+                            emit(
+                                DataEntry(
+                                    type = EmitType.OVEN_MAN_LIST,
+                                    supervisorPrefilledDataResponse.ovenManList
+                                )
+                            )
+
+                            emit(
+                                DataEntry(
+                                    type = EmitType.PACKING_SUPERVISOR_LIST,
+                                    supervisorPrefilledDataResponse.packingSupervisorList
+                                )
+                            )
+
+
+                        }
+
+                        else -> {
+                            emit(DataEntry(type = EmitType.BackendError, value = message))
+                        }
+                    }
+                }
+            }
+
+            is Resource.Error -> {
+                handleFailedResponse(
+                    response = response,
+                    message = response.message,
+                    emitType = EmitType.NetworkError
+                )
+            }
+
+            else -> {
+
+            }
+        }
+    }
 
     fun getProductTypes() = flow {
         emit(DataEntry(EmitType.Loading, true))

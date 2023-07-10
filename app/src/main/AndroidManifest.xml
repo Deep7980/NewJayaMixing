@@ -36,7 +36,7 @@
         </activity>
         <meta-data
             android:name="base_url"
-            android:value="https://api.npoint.io/" />
+            android:value="https://api.npoint.io" />
     </application>
 
 </manifest>

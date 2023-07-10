@@ -10,6 +10,8 @@ import com.jaya.app.core.domain.model.MixingManTypesModel
 import com.jaya.app.core.domain.model.OvenManTypesModel
 import com.jaya.app.core.domain.model.PackingSupervisorTypesModel
 import com.jaya.app.core.domain.model.ProductTypesModel
+import com.jaya.app.core.domain.model.SupervisorPrefilledDataModel
+import com.jaya.app.core.domain.model.SupervisorPrefilledDataResponse
 
 interface AddProductRepository {
     suspend fun getFloorManagerTypes(): Resource<FloorManagerTypesModel>
@@ -27,4 +29,6 @@ interface AddProductRepository {
     suspend fun getMixingLabourTypes(query:String): List<MixingLabourList>
 
     suspend fun getCuttingLabourTypes(query: String): List<CuttingLabourList>
+
+    suspend fun getSupervisorPrefilledData(userId:String): Resource<SupervisorPrefilledDataResponse>
 }

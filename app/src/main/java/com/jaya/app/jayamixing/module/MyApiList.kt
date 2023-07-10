@@ -14,6 +14,7 @@ import com.jaya.app.core.domain.model.OvenManTypesModel
 import com.jaya.app.core.domain.model.PackingSupervisorTypesModel
 import com.jaya.app.core.domain.model.ProductSubmitModel
 import com.jaya.app.core.domain.model.ProductTypesModel
+import com.jaya.app.core.domain.model.SupervisorPrefilledDataResponse
 import com.jaya.app.core.domain.model.UserDetailsModel
 import com.jaya.app.core.domain.model.VerifyOtpModel
 import retrofit2.http.GET
@@ -61,4 +62,7 @@ interface MyApiList {
 
     @GET("e22d9bae14d33fdb637e")
     suspend fun getCuttingLabourDetails(): List<CuttingLabourList>
+
+    @GET("81639a98969c8f51e804")
+    suspend fun getSupervisorPrefilledData(): SupervisorPrefilledDataResponse
 }

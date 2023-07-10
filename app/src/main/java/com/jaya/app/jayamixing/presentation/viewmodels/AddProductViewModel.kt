@@ -30,6 +30,8 @@ import com.jaya.app.core.domain.model.MixingMantype
 import com.jaya.app.core.domain.model.OvenManType
 import com.jaya.app.core.domain.model.PackingSupervisorTypes
 import com.jaya.app.core.domain.model.ProductType
+import com.jaya.app.core.domain.model.SupervisorPrefilledDataModel
+import com.jaya.app.core.domain.model.SupervisorPrefilledDataResponse
 import com.jaya.app.core.domain.useCases.AddProductUseCases
 import com.jaya.app.core.utils.AppNavigator
 import com.jaya.app.jayamixing.R
@@ -48,6 +50,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -136,6 +139,23 @@ class AddProductViewModel @Inject constructor(
 
     val selectedMixingLabourList = mutableStateListOf<String>()
     val selectedCuttingLabourList = mutableStateListOf<String>()
+
+
+    val superVisorName = mutableStateOf("")
+
+    private val _MixingManList = MutableStateFlow(emptyList<String>())
+    val MixingManList = _MixingManList.asStateFlow()
+
+    private val _CuttingManList = MutableStateFlow(emptyList<String>())
+    val cuttingManList = _CuttingManList.asStateFlow()
+
+    private val _OvenManList = MutableStateFlow(emptyList<String>())
+    val ovenManList = _OvenManList.asStateFlow()
+
+    private val _PackingSupervisorList = MutableStateFlow(emptyList<String>())
+    val packingSupervisorList = _PackingSupervisorList.asStateFlow()
+
+
     val chooseImage = mutableStateOf<MyDialog?>(null)
     val imageChooserDialogHandler = mutableStateOf<MyDialog?>(null)
     val selectedImageSource = mutableStateOf(ImageSource.None)
@@ -145,14 +165,15 @@ class AddProductViewModel @Inject constructor(
 
     //val mixingLabourListNames = mutableStateOf("")
     //val baseViewModel:BaseViewModel?=null
-
+    val userId = "1234"
     init {
-        getFloorTypes()
-        getProductTypes()
-        getMixingManTypes()
-        getCuttingManTypes()
-        getOvenManTypes()
-        getPackingSupervisorTypes()
+//        getFloorTypes()
+//        getProductTypes()
+//        getMixingManTypes()
+//        getCuttingManTypes()
+//        getOvenManTypes()
+//        getPackingSupervisorTypes()
+        getSupervisorPrefilledDataTypes(userId)
 
         //getMixingLabourTypes()
 //        baseViewModel?.userName = initialName.value
@@ -233,6 +254,59 @@ class AddProductViewModel @Inject constructor(
         addProductBack.value?.onDismiss = {
             addProductBack.value?.setState(MyDialog.Companion.State.DISABLE)
         }
+    }
+
+    private fun getSupervisorPrefilledDataTypes(userId:String){
+        addProductUseCases.getSupervisorPrefilledData(userId)
+            .flowOn(Dispatchers.IO)
+            .onEach {
+                when(it.type){
+
+                    EmitType.Loading -> {
+                        it.value?.castValueToRequiredTypes<Boolean>()?.let { it ->
+                            dataLoading = it
+                        }
+                    }
+
+                    EmitType.FLOOR_LIST ->{
+                        it.value?.castListToRequiredTypes<FloorManagerType>()?.let { data->
+                            _floorTypesList.update { data }
+                        }
+                    }
+                    EmitType.PRODUCT_TYPES -> {
+                        it.value?.castListToRequiredTypes<ProductType>()?.let { data ->
+                            _productTypes.update { data }
+                        }
+                    }
+                    EmitType.SUPERVISOR_NAME -> {
+                        it.value?.castValueToRequiredTypes<String>()?.let { data ->
+                            superVisorName.value=data
+                        }
+                    }
+                    EmitType.MIXING_MAN_LIST -> {
+                        it.value?.castListToRequiredTypes<MixingMantype>()?.let { data ->
+                            _mixingManList.update { data }
+                        }
+                    }
+                    EmitType.CUTTING_MAN_LIST -> {
+                        it.value?.castListToRequiredTypes<CuttingManTypes>()?.let { data ->
+                            _cuttingManList.update { data }
+                        }
+                    }
+                    EmitType.OVEN_MAN_LIST -> {
+                        it.value?.castListToRequiredTypes<OvenManType>()?.let { data ->
+                            _ovenManList.update { data }
+                        }
+                    }
+                    EmitType.PACKING_SUPERVISOR_LIST -> {
+                        it.value?.castListToRequiredTypes<PackingSupervisorTypes>()?.let { data ->
+                            _packingSupervisorList.update { data }
+                        }
+                    }
+
+                    else -> {}
+                }
+            }.launchIn(viewModelScope)
     }
 
     private fun getProductTypes() {

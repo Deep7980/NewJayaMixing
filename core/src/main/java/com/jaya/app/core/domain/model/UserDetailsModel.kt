@@ -15,6 +15,5 @@ data class UserData(
     val mobile: String,
     val name: String,
     val pincode: String,
-    val state_id: String,
-    val user_id: String
+    val state_id: String
 )

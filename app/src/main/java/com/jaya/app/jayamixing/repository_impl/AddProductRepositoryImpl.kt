@@ -10,6 +10,8 @@ import com.jaya.app.core.domain.model.MixingManTypesModel
 import com.jaya.app.core.domain.model.OvenManTypesModel
 import com.jaya.app.core.domain.model.PackingSupervisorTypesModel
 import com.jaya.app.core.domain.model.ProductTypesModel
+import com.jaya.app.core.domain.model.SupervisorPrefilledDataModel
+import com.jaya.app.core.domain.model.SupervisorPrefilledDataResponse
 import com.jaya.app.core.domain.repositories.AddProductRepository
 import com.jaya.app.jayamixing.module.MyApiList
 import javax.inject.Inject
@@ -96,4 +98,14 @@ class AddProductRepositoryImpl @Inject constructor(
             }
         }.toList()
     }
+
+    override suspend fun getSupervisorPrefilledData(userId:String): Resource<SupervisorPrefilledDataResponse> {
+       return try{
+           Resource.Success(myApiList.getSupervisorPrefilledData())
+       }catch (ex:Exception){
+           Resource.Error(message = ex.message)
+       }
+    }
+
+
 }
