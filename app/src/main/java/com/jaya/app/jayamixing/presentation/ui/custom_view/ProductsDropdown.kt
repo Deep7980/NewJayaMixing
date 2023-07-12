@@ -51,11 +51,11 @@ fun ProductsDropdown(
 ) {
 
     var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
+    //var mSelectedText by remember { mutableStateOf("") }
 
     //  mSelectedText=baseViewModel.prefilledExpenseType
-    if (mSelectedText.isEmpty()) {
-        mSelectedText = viewModel.selectedProduct.value
+    if (viewModel.selectedProduct.value.isEmpty()) {
+        viewModel.selectedProduct.value = "Products"
     }
 
     val icon = if (mExpanded)
@@ -94,7 +94,7 @@ fun ProductsDropdown(
                             .weight(1f)
                             .padding(start = 15.dp)) {
                             Text(
-                                text = mSelectedText,
+                                text = viewModel.selectedProduct.value,
                                 //label = label,
                                 color = Color.DarkGray,
                                 fontSize = 17.sp,
@@ -131,9 +131,9 @@ fun ProductsDropdown(
                                 }
                             },
                             onClick = {
-                                mSelectedText = item.product_type
+                                viewModel.selectedProduct.value = item.product_type
                                 mExpanded = false
-                                onSelect(mSelectedText)
+                                onSelect(viewModel.selectedProduct.value)
                             })
 
                     }

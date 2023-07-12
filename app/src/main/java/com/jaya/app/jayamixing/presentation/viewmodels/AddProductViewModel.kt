@@ -33,6 +33,7 @@ import com.jaya.app.core.domain.model.ProductType
 import com.jaya.app.core.domain.model.SupervisorPrefilledDataModel
 import com.jaya.app.core.domain.model.SupervisorPrefilledDataResponse
 import com.jaya.app.core.domain.useCases.AddProductUseCases
+import com.jaya.app.core.helpers.AppStore
 import com.jaya.app.core.utils.AppNavigator
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.MyDialog
@@ -59,6 +60,7 @@ import javax.inject.Inject
 class AddProductViewModel @Inject constructor(
     private val addProductUseCases: AddProductUseCases,
     private val appNavigator: AppNavigator,
+    private val appStore: AppStore,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -72,10 +74,10 @@ class AddProductViewModel @Inject constructor(
 //    val floorTypes = _floorTypesList.asStateFlow()
 
     val addProductBack = mutableStateOf<MyDialog?>(null)
-    var mixingLabourList = mutableStateListOf<String>()
-    var cuttingLabourList = mutableStateListOf<String>()
-    var mixingLabourTextName = mutableStateOf("")
-    var cuttingLabourName = mutableStateOf("")
+//    var mixingLabourList = mutableStateListOf<String>()
+//    var cuttingLabourList = mutableStateListOf<String>()
+//    var mixingLabourTextName = mutableStateOf("")
+//    var cuttingLabourName = mutableStateOf("")
 
     var leftAddedKG = mutableStateOf("")
     var brokenAddedKG = mutableStateOf("")
@@ -83,14 +85,14 @@ class AddProductViewModel @Inject constructor(
     private val _productTypes = MutableStateFlow(emptyList<ProductType>())
     val productTypes = _productTypes.asStateFlow()
 
-    val selectedProduct = mutableStateOf("Products")
-    val selectedMixingMan = mutableStateOf("Mixing Man")
-    val selectedCuttingMan = mutableStateOf("Cutting Man")
-    val selectedOvenMan = mutableStateOf("Oven Man")
-    val selectedPackingSupervisor = mutableStateOf("Packing Supervisor")
+    val selectedProduct = mutableStateOf("")
+    val selectedMixingMan = mutableStateOf("")
+    val selectedCuttingMan = mutableStateOf("")
+    val selectedOvenMan = mutableStateOf("")
+    val selectedPackingSupervisor = mutableStateOf("")
 
-    var selectedFloor = mutableStateOf("Floor Manager")
-    var selectedPlant = mutableStateOf("Select Plant")
+    var selectedFloor = mutableStateOf("")
+    var selectedPlant = mutableStateOf("")
     var isShiftAselected = mutableStateOf(true)
     var shiftABtnBackColor = mutableStateOf(SplashGreen)
     var shiftATxtColor = mutableStateOf(Color.White)
@@ -103,7 +105,7 @@ class AddProductViewModel @Inject constructor(
     var shiftCBtnBackColor = mutableStateOf(Color.White)
     var shiftCTxtColor = mutableStateOf(Color.DarkGray)
 
-    var initialName = mutableStateOf("Ramesh Saha")
+    var initialName = mutableStateOf("")
     var productDesc = mutableStateOf("")
     val isSelectedMixingLabour = mutableStateOf(false)
     val isSelectedCuttingLabour = mutableStateOf(false)
@@ -140,20 +142,23 @@ class AddProductViewModel @Inject constructor(
     val selectedMixingLabourList = mutableStateListOf<String>()
     val selectedCuttingLabourList = mutableStateListOf<String>()
 
+    val mCheckedState = mutableStateOf(false)
+
 
     val superVisorName = mutableStateOf("")
 
-    private val _MixingManList = MutableStateFlow(emptyList<String>())
-    val MixingManList = _MixingManList.asStateFlow()
 
-    private val _CuttingManList = MutableStateFlow(emptyList<String>())
-    val cuttingManList = _CuttingManList.asStateFlow()
-
-    private val _OvenManList = MutableStateFlow(emptyList<String>())
-    val ovenManList = _OvenManList.asStateFlow()
-
-    private val _PackingSupervisorList = MutableStateFlow(emptyList<String>())
-    val packingSupervisorList = _PackingSupervisorList.asStateFlow()
+//    private val _MixingManList = MutableStateFlow(emptyList<String>())
+//    val MixingManList = _MixingManList.asStateFlow()
+//
+//    private val _CuttingManList = MutableStateFlow(emptyList<String>())
+//    val cuttingManList = _CuttingManList.asStateFlow()
+//
+//    private val _OvenManList = MutableStateFlow(emptyList<String>())
+//    val ovenManList = _OvenManList.asStateFlow()
+//
+//    private val _PackingSupervisorList = MutableStateFlow(emptyList<String>())
+//    val packingSupervisorList = _PackingSupervisorList.asStateFlow()
 
 
     val chooseImage = mutableStateOf<MyDialog?>(null)
@@ -165,7 +170,8 @@ class AddProductViewModel @Inject constructor(
 
     //val mixingLabourListNames = mutableStateOf("")
     //val baseViewModel:BaseViewModel?=null
-    val userId = "1234"
+    val shift = "Shift A"
+    val plant = "Plant 1"
     init {
 //        getFloorTypes()
 //        getProductTypes()
@@ -173,25 +179,35 @@ class AddProductViewModel @Inject constructor(
 //        getCuttingManTypes()
 //        getOvenManTypes()
 //        getPackingSupervisorTypes()
-        getSupervisorPrefilledDataTypes(userId)
+        viewModelScope.launch {
+            getSupervisorPrefilledDataTypes(shift,plant,appStore.userId())
+        }
 
         //getMixingLabourTypes()
 //        baseViewModel?.userName = initialName.value
 //        Log.d("Username from BaseViewModel", ": ${baseViewModel?.userName}")
     }
 
-//    fun cameraIconClick() {
-//        cameraStateOpen.value = true
-//        showDialog.value = false
-//    }
 
     fun addMixingLabourToList() {
         if (mixingLabourSearchQuery.text.isNotEmpty()) {
             selectedMixingLabourList.add(mixingLabourSearchQuery.text)
+            isSelectedMixingLabour.value=false
             mixingLabourSearchQuery = mixingLabourSearchQuery.copy(
                 text = ""
             )
         }
+    }
+
+    fun onSelectMixingLabour(item: MixingLabourList) {
+        isSelectedMixingLabour.value = true
+        mixingLabourSearchQuery = mixingLabourSearchQuery.copy(
+            text = item.name,
+            selection = TextRange(item.name.length)
+        )
+        loadMixingLabourListState.value = false
+
+
     }
 
     fun addCuttingLabourToList() {
@@ -239,6 +255,33 @@ class AddProductViewModel @Inject constructor(
         )
     }
 
+    fun clearAllDetailsOnShiftChange(){
+        dataLoading = true
+        viewModelScope.launch {
+            delay(500L)
+            dataLoading = false
+        }
+        selectedPlant.value="Plant 1"
+        selectedFloor.value="Floor Manager"
+        selectedProduct.value="Products"
+        selectedMixingMan.value="Mixing Man"
+        selectedCuttingMan.value="Cutting Man"
+        selectedOvenMan.value="Oven Man"
+        selectedPackingSupervisor.value="Packing Supervisor"
+        mCheckedState.value=false
+        selectedCuttingLabourList.clear()
+        selectedMixingLabourList.clear()
+        productDesc.value=""
+        leftAddedKG.value=""
+        brokenAddedKG.value=""
+
+//        if(isShiftBselected.value || isShiftCselected.value)
+           // selectedFloor.value=""
+        //selectedProduct.value="Products"
+//        baseViewModel.getStartedSelectedPlant.value=selectedPlant.value
+//        baseViewModel.selectedFloor.value=selectedFloor.value
+    }
+
     fun confirmSubmit() {
         appNavigator.tryNavigateTo(
             route = Destination.Completed(),
@@ -256,8 +299,8 @@ class AddProductViewModel @Inject constructor(
         }
     }
 
-    private fun getSupervisorPrefilledDataTypes(userId:String){
-        addProductUseCases.getSupervisorPrefilledData(userId)
+    private fun getSupervisorPrefilledDataTypes(shift:String,plant:String,userId:String){
+        addProductUseCases.getSupervisorPrefilledData(shift,plant,userId)
             .flowOn(Dispatchers.IO)
             .onEach {
                 when(it.type){
@@ -308,6 +351,143 @@ class AddProductViewModel @Inject constructor(
                 }
             }.launchIn(viewModelScope)
     }
+
+
+    @OptIn(FlowPreview::class)
+    fun getMixingLabourTypes(query: TextFieldValue) {
+        Log.d("TESTING", "loadData: $query")
+        mixingLabourSearchQuery = query
+        loadMixingLabourListState.value = true
+        viewModelScope.launch {
+            addProductUseCases.getMixingLabourTypes(appStore.userId(),query.text)
+                .flowOn(Dispatchers.IO)
+                .debounce(500L)
+                .onEach {
+                    when (it.type) {
+                        EmitType.MIXING_LABOUR_LIST -> {
+                            it.value?.castListToRequiredTypes<MixingLabourList>()?.let { mixingLabour ->
+                                _mixingLabourList.update { mixingLabour }
+                                // mixingLabourTextName.value = mixingLabourName
+                                Log.d(
+                                    "MixingLabourList",
+                                    "Mixing Labour List: ${mixingLabour.toList()}"
+                                )
+                            }
+//
+                        }
+
+                        EmitType.Loading -> {
+                            it.value?.apply {
+                                castValueToRequiredTypes<Boolean>()?.let {
+                                    isDataLoaded.value = it
+                                }
+                            }
+                        }
+
+                        else -> {
+
+                        }
+                    }
+                }.launchIn(viewModelScope)
+        }
+
+    }
+
+
+
+
+    @OptIn(FlowPreview::class)
+    fun getCuttingLabourTypes(query: TextFieldValue) {
+        Log.d("TESTING", "loadData: $query")
+        cuttingLabourSearchQuery = query
+        loadCuttingLabourListState.value = true
+        viewModelScope.launch {
+            addProductUseCases.getCuttingLabourTypes(appStore.userId(),query.text)
+                .flowOn(Dispatchers.IO)
+                .debounce(500L)
+                .onEach {
+                    when (it.type) {
+                        EmitType.CUTTING_LABOUR_LIST -> {
+                            it.value?.castListToRequiredTypes<CuttingLabourList>()
+                                ?.let { cuttingLabour ->
+                                    _cuttingLabourList.update { cuttingLabour }
+                                    // mixingLabourTextName.value = mixingLabourName
+                                    Log.d(
+                                        "MixingLabourList",
+                                        "Mixing Labour List: ${cuttingLabour.toList()}"
+                                    )
+                                }
+//
+                        }
+
+                        EmitType.Loading -> {
+                            it.value?.apply {
+                                castValueToRequiredTypes<Boolean>()?.let {
+                                    isDataLoaded.value = it
+                                }
+                            }
+                        }
+
+                        else -> {
+
+                        }
+                    }
+                }.launchIn(viewModelScope)
+        }
+
+    }
+
+
+
+    fun onSelectCuttingLabour(item: CuttingLabourList) {
+//        mixingLabourTextName.value=item.name
+//        Log.d("mixingLabourTextName", "onSelectMixingLabour: ${mixingLabourTextName.value}")
+        cuttingLabourSearchQuery = cuttingLabourSearchQuery.copy(
+            text = item.name,
+            selection = TextRange(item.name.length)
+        )
+        isSelectedCuttingLabour.value = true
+        loadCuttingLabourListState.value = false
+//        selectedMixingLabourList.add(item.name)
+//        Log.d("selectedVendorList", "selectedVendorList: ${selectedMixingLabourList.toList()}")
+
+    }
+
+    fun onImageCaptured(bitmap: Bitmap?) {
+        showDialog.value = false
+        if (bitmap != null) {
+            capturedImagesList.add(bitmap)
+            _capturedImages.update {
+                val tmp = it.toMutableList()
+                tmp.add(bitmap)
+                tmp
+            }
+        }
+    }
+
+    fun onGalleryImageCaptured(uri: Uri?){
+        showDialog.value = false
+        if(uri != null){
+            if (Build.VERSION.SDK_INT < 28)
+            {
+                MediaStore.Images.Media.getBitmap(com.jaya.app.jayamixing.application.JayaMixingApp.app?.applicationContext?.contentResolver,uri)
+            } else {
+                val source = com.jaya.app.jayamixing.application.JayaMixingApp.app?.applicationContext?.let {
+                    ImageDecoder.createSource(it.contentResolver,uri)
+                }
+                if (source != null) {
+                    val bitmapImage = ImageDecoder.decodeBitmap(source)
+                    capturedImagesList.add(bitmapImage)
+                    _capturedImages.update {
+                        val tmp = it.toMutableList()
+                        tmp.add(bitmapImage)
+                        tmp
+                    }
+                }
+            }
+        }
+    }
+
 
     private fun getProductTypes() {
         addProductUseCases.getProductTypes()
@@ -498,143 +678,5 @@ class AddProductViewModel @Inject constructor(
                     else -> {}
                 }
             }.launchIn(viewModelScope)
-    }
-
-    @OptIn(FlowPreview::class)
-    fun getMixingLabourTypes(query: TextFieldValue) {
-        Log.d("TESTING", "loadData: $query")
-        mixingLabourSearchQuery = query
-        loadMixingLabourListState.value = true
-        addProductUseCases.getMixingLabourTypes(query.text)
-            .flowOn(Dispatchers.IO)
-            .debounce(500L)
-            .onEach {
-                when (it.type) {
-                    EmitType.MIXING_LABOUR_LIST -> {
-                        it.value?.castListToRequiredTypes<MixingLabourList>()?.let { mixingLabour ->
-                            _mixingLabourList.update { mixingLabour }
-                            // mixingLabourTextName.value = mixingLabourName
-                            Log.d(
-                                "MixingLabourList",
-                                "Mixing Labour List: ${mixingLabour.toList()}"
-                            )
-                        }
-//
-                    }
-
-                    EmitType.Loading -> {
-                        it.value?.apply {
-                            castValueToRequiredTypes<Boolean>()?.let {
-                                isDataLoaded.value = it
-                            }
-                        }
-                    }
-
-                    else -> {
-
-                    }
-                }
-            }.launchIn(viewModelScope)
-    }
-
-    fun onSelectMixingLabour(item: MixingLabourList) {
-//        mixingLabourTextName.value=item.name
-//        Log.d("mixingLabourTextName", "onSelectMixingLabour: ${mixingLabourTextName.value}")
-        mixingLabourSearchQuery = mixingLabourSearchQuery.copy(
-            text = item.name,
-            selection = TextRange(item.name.length)
-        )
-        isSelectedMixingLabour.value = true
-        loadMixingLabourListState.value = false
-//        selectedMixingLabourList.add(item.name)
-//        Log.d("selectedVendorList", "selectedVendorList: ${selectedMixingLabourList.toList()}")
-
-    }
-
-    @OptIn(FlowPreview::class)
-    fun getCuttingLabourTypes(query: TextFieldValue) {
-        Log.d("TESTING", "loadData: $query")
-        cuttingLabourSearchQuery = query
-        loadCuttingLabourListState.value = true
-        addProductUseCases.getCuttingLabourTypes(query.text)
-            .flowOn(Dispatchers.IO)
-            .debounce(500L)
-            .onEach {
-                when (it.type) {
-                    EmitType.CUTTING_LABOUR_LIST -> {
-                        it.value?.castListToRequiredTypes<CuttingLabourList>()
-                            ?.let { cuttingLabour ->
-                                _cuttingLabourList.update { cuttingLabour }
-                                // mixingLabourTextName.value = mixingLabourName
-                                Log.d(
-                                    "MixingLabourList",
-                                    "Mixing Labour List: ${cuttingLabour.toList()}"
-                                )
-                            }
-//
-                    }
-
-                    EmitType.Loading -> {
-                        it.value?.apply {
-                            castValueToRequiredTypes<Boolean>()?.let {
-                                isDataLoaded.value = it
-                            }
-                        }
-                    }
-
-                    else -> {
-
-                    }
-                }
-            }.launchIn(viewModelScope)
-    }
-
-    fun onSelectCuttingLabour(item: CuttingLabourList) {
-//        mixingLabourTextName.value=item.name
-//        Log.d("mixingLabourTextName", "onSelectMixingLabour: ${mixingLabourTextName.value}")
-        cuttingLabourSearchQuery = cuttingLabourSearchQuery.copy(
-            text = item.name,
-            selection = TextRange(item.name.length)
-        )
-        isSelectedCuttingLabour.value = true
-        loadCuttingLabourListState.value = false
-//        selectedMixingLabourList.add(item.name)
-//        Log.d("selectedVendorList", "selectedVendorList: ${selectedMixingLabourList.toList()}")
-
-    }
-
-    fun onImageCaptured(bitmap: Bitmap?) {
-        showDialog.value = false
-        if (bitmap != null) {
-            capturedImagesList.add(bitmap)
-            _capturedImages.update {
-                val tmp = it.toMutableList()
-                tmp.add(bitmap)
-                tmp
-            }
-        }
-    }
-
-    fun onGalleryImageCaptured(uri: Uri?){
-        showDialog.value = false
-        if(uri != null){
-            if (Build.VERSION.SDK_INT < 28)
-            {
-                MediaStore.Images.Media.getBitmap(com.jaya.app.jayamixing.application.JayaMixingApp.app?.applicationContext?.contentResolver,uri)
-            } else {
-                val source = com.jaya.app.jayamixing.application.JayaMixingApp.app?.applicationContext?.let {
-                    ImageDecoder.createSource(it.contentResolver,uri)
-                }
-                if (source != null) {
-                    val bitmapImage = ImageDecoder.decodeBitmap(source)
-                    capturedImagesList.add(bitmapImage)
-                    _capturedImages.update {
-                        val tmp = it.toMutableList()
-                        tmp.add(bitmapImage)
-                        tmp
-                    }
-                }
-            }
-        }
     }
 }

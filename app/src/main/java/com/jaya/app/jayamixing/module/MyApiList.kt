@@ -1,6 +1,5 @@
 package com.jaya.app.jayamixing.module
 
-import android.graphics.Bitmap
 import com.jaya.app.core.domain.model.AddDetailsModel
 import com.jaya.app.core.domain.model.AppVersionModel
 import com.jaya.app.core.domain.model.BaseUrlModel
@@ -24,6 +23,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface MyApiList {
 
@@ -34,7 +34,7 @@ interface MyApiList {
     suspend fun getAppVersion(): AppVersionModel
 
     @GET("b5c867c3bf0cda68eda5")
-    suspend fun getOtp(): GetLoginModel
+    suspend fun getLogin(@Query("email") email: String,@Query("password") password: String): GetLoginModel
 
     @GET("2e71ccced6e82f10cb90")
     suspend fun verifyOtp(): VerifyOtpModel
@@ -69,13 +69,15 @@ interface MyApiList {
     @GET("e22d9bae14d33fdb637e")
     suspend fun getCuttingLabourDetails(): List<CuttingLabourList>
 
-<<<<<<< HEAD
+//    @GET("daccfee9cfebd533b0a0")
+//    suspend fun getMixingAndCuttingLabourListData(): List<MixingAndCuttingLabourModel>
+
     @GET("81639a98969c8f51e804")
     suspend fun getSupervisorPrefilledData(): SupervisorPrefilledDataResponse
-=======
+
     @Multipart
-    @POST("add_mixing_data/{user_id}")
-    suspend fun submitMixingDetails(
+    @POST("add_packingSupervisor_data/{user_id}")
+    suspend fun submitPackingSupervisorDetails(
         @Path("user_id") user_id: String,
         @Field("selectedShift") shift:String,
         @Field("selectedPlant") plant:String,
@@ -90,8 +92,8 @@ interface MyApiList {
         @Field("leftDoughValue") leftDoughValue: String,
         @Field("brokenAddedValue") brokenAddedValue: String,
         @Field("productDesc") productDesc: String,
-        @Field("prodImage") productImage: List<Bitmap>
+        @Part productImage: List<MultipartBody.Part>
         // @Part("video_clip_list") videoFiles:List<MultipartBody.Part>
     ): AddDetailsModel
->>>>>>> origin/master
+
 }

@@ -28,6 +28,7 @@ class OtpUseCases @Inject constructor(
                         true ->{
                             if(isMatched){
                                 appStore.login(userId)
+                                appStore.setUserId(userId)
                                 emit(DataEntry(EmitType.BackendSuccess,message))
                                 emit(DataEntry(EmitType.Navigate,Destination.Dashboard))
                             }else{

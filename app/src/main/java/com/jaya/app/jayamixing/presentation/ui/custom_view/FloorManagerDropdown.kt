@@ -54,11 +54,12 @@ fun FloorManagerDropdown(
 ) {
 
     var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
+   // var viewModel.selectedFloor.value by remember { mutableStateOf("") }
 
-    //  mSelectedText=baseViewModel.prefilledExpenseType
-    if (mSelectedText.isEmpty()) {
-        mSelectedText = viewModel.selectedFloor.value
+    //  viewModel.selectedFloor.value=baseViewModel.prefilledExpenseType
+    if (viewModel.selectedFloor.value.isEmpty()) {
+        viewModel.selectedFloor.value="Floor Manager"
+        // viewModel.selectedFloor.value =viewModel.
 
     }
 
@@ -98,7 +99,7 @@ fun FloorManagerDropdown(
                             .weight(1f)
                             .padding(start = 15.dp)) {
                             Text(
-                                text = mSelectedText,
+                                text = viewModel.selectedFloor.value,
                                 //label = label,
                                 color = Color.DarkGray,
                                 fontSize = 17.sp,
@@ -135,9 +136,9 @@ fun FloorManagerDropdown(
                                 }
                             },
                             onClick = {
-                                mSelectedText = item.floor_type
+                                viewModel.selectedFloor.value = item.floor_type
                                 mExpanded = false
-                                onSelect(mSelectedText)
+                                onSelect(viewModel.selectedFloor.value)
                             })
 
                     }

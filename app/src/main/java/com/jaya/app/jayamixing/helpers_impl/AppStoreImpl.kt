@@ -49,5 +49,19 @@ class AppStoreImpl @Inject constructor(
         return false
     }
 
+    override suspend fun setUserId(id: String?) {
+        if (id != null) {
+            prefs.edit {
+                it[stringPreferencesKey(PrefConstants.USER_ID)] = id
+            }
+        } else {
+            prefs.edit {
+                it.remove(stringPreferencesKey(PrefConstants.USER_ID))
+            }
+        }
+    }
+
+
+
 
 }

@@ -53,9 +53,9 @@ class LoginUseCases @Inject constructor(
 //        }
 //    }
 
-    fun login() = flow {
+    fun login(email:String,password:String) = flow {
         emit(DataEntry(EmitType.Loading, true))
-        when (val response = loginRepository.login()) {
+        when (val response = loginRepository.login(email,password)) {
             is Resource.Success -> {
                 emit(DataEntry(EmitType.Loading, false))
                 response.data?.apply {

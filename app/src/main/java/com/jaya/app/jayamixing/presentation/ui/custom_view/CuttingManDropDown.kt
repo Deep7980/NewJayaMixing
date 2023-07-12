@@ -51,11 +51,11 @@ fun CuttingManDropDown(
     onSelect: (String) -> Unit
 ) {
     var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
+    //var mSelectedText by remember { mutableStateOf("") }
 
     //  mSelectedText=baseViewModel.prefilledExpenseType
-    if (mSelectedText.isEmpty()) {
-        mSelectedText = viewModel.selectedCuttingMan.value
+    if (viewModel.selectedCuttingMan.value.isEmpty()) {
+        viewModel.selectedCuttingMan.value = "Cutting Man"
     }
 
     val icon = if (mExpanded)
@@ -93,7 +93,7 @@ fun CuttingManDropDown(
                             .weight(1f)
                             .padding(start = 15.dp)) {
                             Text(
-                                text = mSelectedText,
+                                text = viewModel.selectedCuttingMan.value,
                                 //label = label,
                                 color = Color.DarkGray,
                                 fontSize = 17.sp,
@@ -130,9 +130,9 @@ fun CuttingManDropDown(
                                 }
                             },
                             onClick = {
-                                mSelectedText = item.name
+                                viewModel.selectedCuttingMan.value = item.name
                                 mExpanded = false
-                                onSelect(mSelectedText)
+                                onSelect(viewModel.selectedCuttingMan.value)
                             })
 
                     }

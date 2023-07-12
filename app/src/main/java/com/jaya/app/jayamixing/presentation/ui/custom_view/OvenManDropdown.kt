@@ -51,11 +51,11 @@ fun OvenManDropdown(
     onSelect: (String) -> Unit
 ) {
     var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
+    //var mSelectedText by remember { mutableStateOf("") }
 
     //  mSelectedText=baseViewModel.prefilledExpenseType
-    if (mSelectedText.isEmpty()) {
-        mSelectedText = viewModel.selectedOvenMan.value
+    if (viewModel.selectedOvenMan.value.isEmpty()) {
+        viewModel.selectedOvenMan.value = "Oven Man"
     }
 
     val icon = if (mExpanded)
@@ -93,7 +93,7 @@ fun OvenManDropdown(
                             .weight(1f)
                             .padding(start = 15.dp)) {
                             Text(
-                                text = mSelectedText,
+                                text = viewModel.selectedOvenMan.value,
                                 //label = label,
                                 color = Color.DarkGray,
                                 fontSize = 17.sp,
@@ -130,9 +130,9 @@ fun OvenManDropdown(
                                 }
                             },
                             onClick = {
-                                mSelectedText = item.name
+                                viewModel.selectedOvenMan.value = item.name
                                 mExpanded = false
-                                onSelect(mSelectedText)
+                                onSelect(viewModel.selectedOvenMan.value)
                             })
 
                     }

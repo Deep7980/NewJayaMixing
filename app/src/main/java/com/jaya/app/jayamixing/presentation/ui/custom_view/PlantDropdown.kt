@@ -46,11 +46,12 @@ fun PlantDropdown(
     onSelect: (String) -> Unit
 ) {
     var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
+    var defaultSelectedOption by remember{ mutableStateOf(dataList[0]) }
+    //var mSelectedText by remember { mutableStateOf("") }
 
     //  mSelectedText=baseViewModel.prefilledExpenseType
-    if (mSelectedText.isEmpty()) {
-        mSelectedText = viewModel.selectedPlant.value
+    if (viewModel.selectedPlant.value.isEmpty()) {
+        viewModel.selectedPlant.value=defaultSelectedOption
     }
 
     val icon = if (mExpanded)
@@ -87,7 +88,7 @@ fun PlantDropdown(
                         .weight(1f)
                         .padding(start = 15.dp)) {
                         Text(
-                            text = mSelectedText,
+                            text = viewModel.selectedPlant.value,
                             //label = label,
                             color = Color.DarkGray,
                             fontSize = 17.sp,
@@ -126,9 +127,9 @@ fun PlantDropdown(
                                 }
                             },
                             onClick = {
-                                mSelectedText = item
+                                viewModel.selectedPlant.value = item
                                 mExpanded = false
-                                onSelect(mSelectedText)
+                                onSelect(viewModel.selectedPlant.value)
                             })
 
                     }

@@ -15,9 +15,9 @@ class AddProductUseCases @Inject constructor(
     private val addProductRepository: AddProductRepository
 ) {
 
-    fun getSupervisorPrefilledData(userId:String) = flow{
+    fun getSupervisorPrefilledData(shift:String,plant:String,userId:String) = flow{
         emit(DataEntry(EmitType.Loading, true))
-        when (val response = addProductRepository.getSupervisorPrefilledData(userId)) {//appStore.userId()
+        when (val response = addProductRepository.getSupervisorPrefilledData(shift,plant,userId)) {//appStore.userId()
             //when (val response =
             is Resource.Success -> {
                 emit(DataEntry(EmitType.Loading, false))
@@ -281,9 +281,9 @@ class AddProductUseCases @Inject constructor(
         }
     }
 
-    fun getMixingLabourTypes(query:String) = flow{
+    fun getMixingLabourTypes(userId: String,query:String) = flow{
         emit(DataEntry(EmitType.Loading,false))
-        val searchMixingLabours = addProductRepository.getMixingLabourTypes(query)
+        val searchMixingLabours = addProductRepository.getMixingLabourTypes(userId,query)
         emit(DataEntry(EmitType.Loading,true))
         if(searchMixingLabours.isNotEmpty()){
             emit(DataEntry(EmitType.MIXING_LABOUR_LIST,searchMixingLabours))
@@ -292,9 +292,9 @@ class AddProductUseCases @Inject constructor(
         }
     }
 
-    fun getCuttingLabourTypes(query:String) = flow{
+    fun getCuttingLabourTypes(userId: String,query:String) = flow{
         emit(DataEntry(EmitType.Loading,false))
-        val searchCuttingLabours = addProductRepository.getCuttingLabourTypes(query)
+        val searchCuttingLabours = addProductRepository.getCuttingLabourTypes(userId,query)
         emit(DataEntry(EmitType.Loading,true))
         if(searchCuttingLabours.isNotEmpty()){
             emit(DataEntry(EmitType.CUTTING_LABOUR_LIST,searchCuttingLabours))
@@ -302,6 +302,17 @@ class AddProductUseCases @Inject constructor(
             emit(DataEntry(EmitType.NO_CUTTING_LABOUR,null))
         }
     }
+
+//    fun getMixingAndCuttingLabourDetails(query: String) = flow{
+//        emit(DataEntry(EmitType.Loading,false))
+//        val searchLabours = addProductRepository.getMixingAndCuttingLabourDetails(query)
+//        emit(DataEntry(EmitType.Loading,true))
+//        if(searchLabours.isNotEmpty()){
+//            emit(DataEntry(EmitType.CUTTING_LABOUR_LIST,mixingLabourList))
+//        }
+//
+//
+//    }
 
 
 

@@ -79,9 +79,9 @@ class LoginViewModel @Inject constructor(
         return loginBtnState.value
     }
 
-    fun loginIntoApp() {
+    fun loginIntoApp(email:String,password:String) {
         // viewModelScope.launch {
-        loginUseCases.login()
+        loginUseCases.login(email,password)
             .flowOn(Dispatchers.IO)
             .onEach {
                 when (it.type) {

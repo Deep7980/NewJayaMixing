@@ -9,9 +9,9 @@ import javax.inject.Inject
 class LoginRepositoryImpl @Inject constructor(
     private val myApiList: MyApiList
 ):LoginRepository {
-    override suspend fun login(): Resource<GetLoginModel> {
+    override suspend fun login(email:String,password:String): Resource<GetLoginModel> {
         return try {
-            Resource.Success(myApiList.getOtp())
+            Resource.Success(myApiList.getLogin(email,password))
         } catch (ex: Exception) {
             Resource.Error(message = ex.message)
         }

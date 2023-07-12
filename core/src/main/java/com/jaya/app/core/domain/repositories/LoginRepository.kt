@@ -5,5 +5,5 @@ import com.jaya.app.core.domain.model.GetLoginModel
 
 interface LoginRepository {
 
-    suspend fun login(): Resource<GetLoginModel>
+    suspend fun login(email:String,password:String): Resource<GetLoginModel>
 }

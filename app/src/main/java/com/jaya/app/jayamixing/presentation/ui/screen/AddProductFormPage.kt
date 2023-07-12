@@ -1,6 +1,7 @@
 package com.jaya.app.jayamixing.presentation.ui.screen
 
 import android.graphics.Bitmap
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -120,6 +121,8 @@ import com.jaya.app.jayamixing.ui.theme.AppBarYellow
 import com.jaya.app.jayamixing.ui.theme.LogoutRed
 import com.jaya.app.jayamixing.ui.theme.Secondary
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.Objects
@@ -131,11 +134,14 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
 
     val context = LocalContext.current
     val textState = remember { mutableStateOf(TextFieldValue("")) }
-    val mCheckedState = remember { mutableStateOf(false) }
+    //val mCheckedState = remember { mutableStateOf(false) }
     val currentShiftState = remember { mutableStateOf(viewModel.isShiftAselected.value) }
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     BackPressHandler(onBackPressed = { viewModel.onBackDialog() })
 
+//    LaunchedEffect(key1 = viewModel.selectedPlant.value){
+//        viewModel.clearAllDetailsOnShiftChange(baseViewModel)
+//    }
 
     if (viewModel.showDialog.value) {
         ImageCaptureDialog(  
@@ -169,6 +175,8 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                     viewModel.isShiftCselected.value = false
                     viewModel.shiftCBtnBackColor.value = Color.White
                     viewModel.shiftCTxtColor.value = Color.DarkGray
+
+                    viewModel.clearAllDetailsOnShiftChange()
 
                     //viewModel.selectedFloor.value = "Floor Manager"
 
@@ -207,6 +215,10 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                     viewModel.shiftCBtnBackColor.value = Color.White
                     viewModel.shiftCTxtColor.value = Color.DarkGray
 
+                    viewModel.clearAllDetailsOnShiftChange()
+                    Log.d("onShiftChangeFloorValue", "Floor Value on Shift Change: ${viewModel.selectedFloor.value}")
+
+
 
                     //viewModel.selectedFloor.value = ""
                     //Toast.makeText(context, "Shift B selected", Toast.LENGTH_SHORT).show()
@@ -242,6 +254,9 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                     viewModel.isShiftAselected.value = false
                     viewModel.shiftABtnBackColor.value = Color.White
                     viewModel.shiftATxtColor.value = Color.DarkGray
+
+                    viewModel.clearAllDetailsOnShiftChange()
+                    //Log.d("onShiftChangeFloorValue", "Floor Value on Shift Change: ${viewModel.selectedFloor.value}")
 
                     //Toast.makeText(context, "Shift C selected", Toast.LENGTH_SHORT).show()
 
@@ -308,10 +323,10 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 ) {
                     PlantDropdown(
                         false,
-                        listOf("Plant1", "Plant2", "Plant3", "Plant4"),
+                        listOf("Plant 1", "Plant 2", "Plant 3"),
                         viewModel,
                         onSelect = {
-                            baseViewModel.getStartedSelectedPlant.value = it
+                            viewModel.selectedPlant.value = it
                             //Toast.makeText(context, baseViewModel.getStartedSelectedPlant.value, Toast.LENGTH_SHORT).show()
                             //viewModel.selectedPincode.value = it
                         })
@@ -329,7 +344,8 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 viewModel.floorTypes.collectAsState().value,
                 baseViewModel,
                 onSelect = {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    viewModel.selectedFloor.value=it
+                    //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                     //viewModel.selectedPincode.value = it
                 })
 
@@ -338,7 +354,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 false,
                 viewModel.productTypes.collectAsState().value,
                 onSelect = {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
 
@@ -363,7 +379,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 false,
                 viewModel.MixingManTypes.collectAsState().value,
                 onSelect = {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
             CuttingManDropDown(
@@ -371,7 +387,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 false,
                 viewModel.CuttingManTypes.collectAsState().value,
                 onSelect = {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
             OvenManDropdown(
@@ -379,7 +395,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 false,
                 viewModel.OvenManTypes.collectAsState().value,
                 onSelect = {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
             PackingSupervisorDropdown(
@@ -387,7 +403,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 false,
                 viewModel.PackingSupervisorTypes.collectAsState().value,
                 onSelect = {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
                 }
             )
 
@@ -800,9 +816,9 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                     modifier = Modifier.padding(top = 10.dp)
                 )
                 Switch(
-                    checked = mCheckedState.value,
+                    checked = viewModel.mCheckedState.value,
                     onCheckedChange = {
-                        mCheckedState.value = it
+                        viewModel.mCheckedState.value = it
                     },
                     modifier = Modifier
                         .padding(start = 50.dp, end = 10.dp, bottom = 20.dp)
@@ -817,7 +833,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 )
             }
 
-            if (mCheckedState.value) {
+            if (viewModel.mCheckedState.value) {
                 Card(
                     border = BorderStroke(1.dp, Color.LightGray),
                     elevation = CardDefaults.cardElevation(defaultElevation = 20.dp),
@@ -1022,9 +1038,15 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
 
         }
 
+        LaunchedEffect(true){
+            //viewModel.selectedFloor.value
+            //viewModel.clearAllDetailsOnShiftChange()
+            viewModel.selectedFloor.value
+        }
+
     }
 
-}
+}//AddProductFromPage
 
 @Composable
 fun uploadImageLayout(viewModel: AddProductViewModel) {

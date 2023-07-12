@@ -1,21 +1,19 @@
 package com.jaya.app.jayamixing.repository_impl
 
-import android.graphics.Bitmap
 import com.jaya.app.core.common.Resource
 import com.jaya.app.core.domain.model.AddDetailsModel
 import com.jaya.app.core.domain.model.CuttingLabourList
 import com.jaya.app.core.domain.model.CuttingManTypesModel
 import com.jaya.app.core.domain.model.FloorManagerTypesModel
 import com.jaya.app.core.domain.model.MixingLabourList
-import com.jaya.app.core.domain.model.MixingLabourModel
 import com.jaya.app.core.domain.model.MixingManTypesModel
 import com.jaya.app.core.domain.model.OvenManTypesModel
 import com.jaya.app.core.domain.model.PackingSupervisorTypesModel
 import com.jaya.app.core.domain.model.ProductTypesModel
-import com.jaya.app.core.domain.model.SupervisorPrefilledDataModel
 import com.jaya.app.core.domain.model.SupervisorPrefilledDataResponse
 import com.jaya.app.core.domain.repositories.AddProductRepository
 import com.jaya.app.jayamixing.module.MyApiList
+import okhttp3.MultipartBody
 import javax.inject.Inject
 
 class AddProductRepositoryImpl @Inject constructor(
@@ -69,7 +67,7 @@ class AddProductRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getMixingLabourTypes(query:String): List<MixingLabourList> {
+    override suspend fun getMixingLabourTypes(userId: String,query:String): List<MixingLabourList> {
         if (query.isEmpty() || query.isBlank()) return emptyList()
 
         val results = myApiList.getMixingLabourDetails() ?: return emptyList()
@@ -85,7 +83,7 @@ class AddProductRepositoryImpl @Inject constructor(
         }.toList()
     }
 
-    override suspend fun getCuttingLabourTypes(query: String): List<CuttingLabourList> {
+    override suspend fun getCuttingLabourTypes(userId: String,query: String): List<CuttingLabourList> {
         if (query.isEmpty() || query.isBlank()) return emptyList()
 
         val results = myApiList.getCuttingLabourDetails() ?: return emptyList()
@@ -101,8 +99,24 @@ class AddProductRepositoryImpl @Inject constructor(
         }.toList()
     }
 
-<<<<<<< HEAD
-    override suspend fun getSupervisorPrefilledData(userId:String): Resource<SupervisorPrefilledDataResponse> {
+//    override suspend fun getMixingAndCuttingLabourDetails(query: String): List<MixingAndCuttingLabourModel> {
+//        if (query.isEmpty() || query.isBlank()) return emptyList()
+//
+//        val results = myApiList.getMixingAndCuttingLabourListData()
+//
+//        return results.filter {
+//            if (query.length in 2..3) {
+//                query.trim()
+//                    .contains(Regex("(^[a-zA-Z]*+)|([0-9]{2}$)", option = RegexOption.COMMENTS))
+//            } else {
+//                it.mixingLabourList.toString().replace(Regex("[^a-zA-Z\\d:]"), "")
+//                    .contains(Regex(query.lowercase().trim()))
+//            }
+//        }.toList()
+//    }
+
+
+    override suspend fun getSupervisorPrefilledData(shift: String,plant: String,userId:String): Resource<SupervisorPrefilledDataResponse> {
        return try{
            Resource.Success(myApiList.getSupervisorPrefilledData())
        }catch (ex:Exception){
@@ -111,8 +125,8 @@ class AddProductRepositoryImpl @Inject constructor(
     }
 
 
-=======
-    override suspend fun submitPackingDetails(
+
+    override suspend fun submitPackingSupervisorDetails(
         user_id: String,
         shift: String,
         plant: String,
@@ -127,13 +141,12 @@ class AddProductRepositoryImpl @Inject constructor(
         leftDoughValue: String,
         brokenAddedValue: String,
         productDesc: String,
-        productImage: List<Bitmap>
+        productImage: List<MultipartBody.Part>
     ): Resource<AddDetailsModel> {
         return try {
-            Resource.Success(myApiList.submitMixingDetails(user_id,shift,plant,floorManager_name,products_name,mixing_man, cutting_man, oven_man, packingSupervisor_name, mixingLabourList, cuttingLabourList, leftDoughValue, brokenAddedValue, productDesc, productImage))
+            Resource.Success(myApiList.submitPackingSupervisorDetails(user_id,shift,plant,floorManager_name,products_name,mixing_man, cutting_man, oven_man, packingSupervisor_name, mixingLabourList, cuttingLabourList, leftDoughValue, brokenAddedValue, productDesc, productImage))
         } catch (ex: Exception) {
             Resource.Error(message = ex.message)
         }
     }
->>>>>>> origin/master
 }

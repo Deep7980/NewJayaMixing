@@ -179,6 +179,11 @@ class DashboardViewModel @Inject constructor(
             }.launchIn(viewModelScope)
     }
     fun onDashBoardPageToAddProduct() {
+//        quotationsLoading = true
+//        viewModelScope.launch {
+//            delay(500L)
+//            quotationsLoading = false
+//        }
         appNavigator.tryNavigateTo(
             route = Destination.AddProduct(),
             // popUpToRoute = Destination.Dashboard(),

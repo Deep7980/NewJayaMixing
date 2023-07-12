@@ -26,6 +26,6 @@ class BaseViewModel @Inject constructor(
     var statusBarColor= mutableStateOf(Primary)
     var getStartedSelectedPlant = mutableStateOf("")
     var userName :String=""
-    var selectedFloor = mutableStateOf("Floor Manager")
+    var selectedFloor = mutableStateOf("")
     var selectedPlant = mutableStateOf("Select Plant")
 }

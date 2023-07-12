@@ -52,11 +52,11 @@ fun MixingManDropdown(
 ) {
 
     var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
+    //var mSelectedText by remember { mutableStateOf("") }
 
     //  mSelectedText=baseViewModel.prefilledExpenseType
-    if (mSelectedText.isEmpty()) {
-        mSelectedText = viewModel.selectedMixingMan.value
+    if (viewModel.selectedMixingMan.value.isEmpty()) {
+       viewModel.selectedMixingMan.value = "Mixing Man"
     }
 
     val icon = if (mExpanded)
@@ -94,7 +94,7 @@ fun MixingManDropdown(
                             .weight(1f)
                             .padding(start = 15.dp)) {
                             Text(
-                                text = mSelectedText,
+                                text = viewModel.selectedMixingMan.value,
                                 //label = label,
                                 color = Color.DarkGray,
                                 fontSize = 17.sp,
@@ -131,9 +131,9 @@ fun MixingManDropdown(
                                 }
                             },
                             onClick = {
-                                mSelectedText = item.name
+                                viewModel.selectedMixingMan.value = item.name
                                 mExpanded = false
-                                onSelect(mSelectedText)
+                                onSelect(viewModel.selectedMixingMan.value)
                             })
 
                     }

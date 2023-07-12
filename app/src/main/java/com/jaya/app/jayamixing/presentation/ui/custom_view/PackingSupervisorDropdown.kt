@@ -51,11 +51,11 @@ fun PackingSupervisorDropdown(
     onSelect: (String) -> Unit
 ) {
     var mExpanded by remember { mutableStateOf(false) }
-    var mSelectedText by remember { mutableStateOf("") }
+    //var mSelectedText by remember { mutableStateOf("") }
 
     //  mSelectedText=baseViewModel.prefilledExpenseType
-    if (mSelectedText.isEmpty()) {
-        mSelectedText = viewModel.selectedPackingSupervisor.value
+    if (viewModel.selectedPackingSupervisor.value.isEmpty()) {
+        viewModel.selectedPackingSupervisor.value = "Packing Supervisor"
     }
 
     val icon = if (mExpanded)
@@ -93,7 +93,7 @@ fun PackingSupervisorDropdown(
                             .weight(1f)
                             .padding(start = 15.dp)) {
                             Text(
-                                text = mSelectedText,
+                                text = viewModel.selectedPackingSupervisor.value,
                                 //label = label,
                                 color = Color.DarkGray,
                                 fontSize = 17.sp,
@@ -130,9 +130,9 @@ fun PackingSupervisorDropdown(
                                 }
                             },
                             onClick = {
-                                mSelectedText = item.name
+                                viewModel.selectedPackingSupervisor.value = item.name
                                 mExpanded = false
-                                onSelect(mSelectedText)
+                                onSelect(viewModel.selectedPackingSupervisor.value)
                             })
 
                     }
