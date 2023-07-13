@@ -62,6 +62,20 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    fun openDashboardPage(){
+        viewModelScope.launch {
+            delay(3000L)
+            quotationsLoading = false
+        }
+        appNavigator.tryNavigateTo(
+            route = Destination.Dashboard(),
+            //popUpToRoute = Destination.AddProduct(),
+            isSingleTop = true,
+            inclusive = true
+        )
+
+    }
+
 
     private val _productsList = MutableStateFlow(emptyList<ProdDetails>())
     val productsList = _productsList.asStateFlow()

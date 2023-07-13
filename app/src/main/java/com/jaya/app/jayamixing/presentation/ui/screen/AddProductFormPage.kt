@@ -137,7 +137,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
     //val mCheckedState = remember { mutableStateOf(false) }
     val currentShiftState = remember { mutableStateOf(viewModel.isShiftAselected.value) }
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    BackPressHandler(onBackPressed = { viewModel.onBackDialog() })
+    BackPressHandler(onBackPressed = {viewModel.backToDashboardPage()})
 
 //    LaunchedEffect(key1 = viewModel.selectedPlant.value){
 //        viewModel.clearAllDetailsOnShiftChange(baseViewModel)
@@ -216,7 +216,7 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                     viewModel.shiftCTxtColor.value = Color.DarkGray
 
                     viewModel.clearAllDetailsOnShiftChange()
-                    Log.d("onShiftChangeFloorValue", "Floor Value on Shift Change: ${viewModel.selectedFloor.value}")
+                    //Log.d("onShiftChangeFloorValue", "Floor Value on Shift Change: ${viewModel.selectedFloor.value}")
 
 
 

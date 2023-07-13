@@ -436,6 +436,7 @@ fun DrawerContentComponent(
                         .clickable(
                             onClick = {
                                 currentScreen.value = screen
+                                viewModel.openDashboardPage()
                                 closeDrawer()
                             }
                         ),

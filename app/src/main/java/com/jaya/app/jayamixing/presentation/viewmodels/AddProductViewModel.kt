@@ -201,6 +201,7 @@ class AddProductViewModel @Inject constructor(
 
     fun onSelectMixingLabour(item: MixingLabourList) {
         isSelectedMixingLabour.value = true
+        _mixingLabourList.update { emptyList() }
         mixingLabourSearchQuery = mixingLabourSearchQuery.copy(
             text = item.name,
             selection = TextRange(item.name.length)
@@ -442,6 +443,7 @@ class AddProductViewModel @Inject constructor(
     fun onSelectCuttingLabour(item: CuttingLabourList) {
 //        mixingLabourTextName.value=item.name
 //        Log.d("mixingLabourTextName", "onSelectMixingLabour: ${mixingLabourTextName.value}")
+        _cuttingLabourList.update { emptyList() }
         cuttingLabourSearchQuery = cuttingLabourSearchQuery.copy(
             text = item.name,
             selection = TextRange(item.name.length)
