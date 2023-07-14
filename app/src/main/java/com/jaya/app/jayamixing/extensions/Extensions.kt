@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.jaya.app.jayamixing.helpers_impl.SavableMutableState
 
 @Composable
@@ -175,6 +177,10 @@ val screenWidth: Dp
     get() = LocalConfiguration.current.screenWidthDp.dp
 
 
+inline fun <reified T> T.encodeJson(): String = Gson().toJson(this, object : TypeToken<T>() {}.type)
+
+inline fun <reified T> String.decodeJson(): T =
+    Gson().fromJson(this, object : TypeToken<T>() {}.type)
 fun <T> animationSpec() = tween<T>(
     durationMillis = 400,
     easing = LinearOutSlowInEasing

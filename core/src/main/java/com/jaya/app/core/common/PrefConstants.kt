@@ -10,4 +10,6 @@ object PrefConstants {
     const val INTRO_STATUS = "intro_status"
     const val OTP = "otp"
     const val PDF_URL = "pdf_url"
+    const val USER_CREDS = "user_creds"
+    const val PROD_DETAILS = "prod_details"
 }

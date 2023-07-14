@@ -62,6 +62,8 @@ class LoginUseCases @Inject constructor(
                     when (status) {
                         true -> {
                             if (isUser) {
+                                appStore.setUserCredentials(userCreds)
+                                appStore.setUserId(userId)
                                 emit(DataEntry(type = EmitType.BackendSuccess, value ="$message \n  USERID=$userId"))
                                 emit(DataEntry(type = EmitType.Navigate, value = Destination.Dashboard))
                             } else {

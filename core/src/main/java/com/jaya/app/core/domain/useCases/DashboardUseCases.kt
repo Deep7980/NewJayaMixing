@@ -50,33 +50,42 @@ class DashboardUseCases @Inject constructor(
         }
     }
     fun getUserDetails() = flow {
-        emit(DataEntry(EmitType.Loading, true))
-        when (val response = dashboardRepository.getUserDetails()) {//appStore.userId()
-            //when (val response =
-            is Resource.Success -> {
-                emit(DataEntry(EmitType.Loading, false))
-                response.data?.apply {
-                    when (status) {
-                        true -> {
-                            emit(DataEntry(type = EmitType.USER_DATA, value = user_data))
-                        }
-                        else -> {
-                            emit(DataEntry(type = EmitType.BackendError, value = message))
-                        }
-                    }
-                }
-            }
-            is Resource.Error -> {
-                handleFailedResponse(
-                    response = response,
-                    message = response.message,
-                    emitType = EmitType.NetworkError
-                )
-            }
-            else -> {
-
-            }
+        //getting user details from Shared Preference
+        val creds = appStore.credentials()
+        if(creds != null) {
+            emit(DataEntry(EmitType.USER_DATA, creds))
+        } else {
+            emit(DataEntry(EmitType.NetworkError, null))
         }
+
+        //getting user details from mock api
+//        emit(DataEntry(EmitType.Loading, true))
+//        when (val response = dashboardRepository.getUserDetails()) {//appStore.userId()
+//            //when (val response =
+//            is Resource.Success -> {
+//                emit(DataEntry(EmitType.Loading, false))
+//                response.data?.apply {
+//                    when (status) {
+//                        true -> {
+//                            emit(DataEntry(type = EmitType.USER_DATA, value = user_data))
+//                        }
+//                        else -> {
+//                            emit(DataEntry(type = EmitType.BackendError, value = message))
+//                        }
+//                    }
+//                }
+//            }
+//            is Resource.Error -> {
+//                handleFailedResponse(
+//                    response = response,
+//                    message = response.message,
+//                    emitType = EmitType.NetworkError
+//                )
+//            }
+//            else -> {
+//
+//            }
+//        }
     }
 
 
