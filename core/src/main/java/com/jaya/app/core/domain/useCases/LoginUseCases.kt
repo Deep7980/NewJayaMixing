@@ -81,7 +81,6 @@ class LoginUseCases @Inject constructor(
             is Resource.Error -> {
                 handleFailedResponse(
                     response = response,
-                    message = response.message,
                     emitType = EmitType.NetworkError
                 )
             }

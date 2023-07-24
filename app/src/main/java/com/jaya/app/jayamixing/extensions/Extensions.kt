@@ -74,6 +74,8 @@ fun String.longToast(context: Context) {
 }
 
 
+
+
 fun Float.dp(): Float = this * density + 0.5f
 
 val density: Float
@@ -207,6 +209,11 @@ fun Int.Text(style: TextStyle, modifier: Modifier = Modifier) =
 //        style = style,
 //        modifier = modifier
 //    )
+
+@Composable
+fun Int.text(style: TextStyle, modifier: Modifier = Modifier) =
+    androidx.compose.material3.Text(text = stringResource(id = this), style = style, modifier = modifier)
+//    Text(text = stringResource(id = this), style = style, modifier = modifier)
 
 
 @UiComposable

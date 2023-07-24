@@ -14,6 +14,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +35,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +51,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.jaya.app.core.domain.model.AppVersion
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.OnEffect
 import com.jaya.app.jayamixing.extensions.Text
@@ -56,7 +62,9 @@ import com.jaya.app.jayamixing.presentation.viewmodels.SplashViewModel
 import com.jaya.app.jayamixing.ui.theme.AppBarYellow
 import com.jaya.app.jayamixing.ui.theme.LogoutRed
 import com.jaya.app.jayamixing.ui.theme.Primary
+import com.jaya.app.jayamixing.ui.theme.PrimaryVariant
 import com.jaya.app.jayamixing.ui.theme.SplashGreen
+import com.jaya.app.jayamixing.utility.DialogHandler
 import kotlinx.coroutines.delay
 
 
@@ -178,60 +186,70 @@ fun SplashScreen(viewModel: SplashViewModel = hiltViewModel()) {
 
 
     val context = LocalContext.current
-    viewModel.versionUpdateDialog.value?.apply {
+    viewModel.updateApp.value?.apply {
         if (currentState()) {
-            AlertDialog(
-                containerColor = AppBarYellow,
-                shape = RoundedCornerShape(10.dp),
+            Dialog(
                 onDismissRequest = {
-                    // openDialog.value = false
-                },
-                title = {
-                    // Text(text = context.getString(R.string.app_name), color = Color.DarkGray)
-                    currentData?.title?.let {
-                        Text(text =it,color = Color.DarkGray,fontSize = 20.sp)
+                    if (!(currentData.data as AppVersion).isOptional) {
+                        setState(DialogHandler.Companion.State.DISABLE)
                     }
                 },
-                text = {
-
-                    currentData?.message?.let {
-                        Text(text = it,color = Color.Gray,fontSize = 15.sp ) //version message from Api
-                    }
-
-                },
-                dismissButton = {
-                    //  if (!(currentData?.data as AppVersion).isSkipable) {
-                    currentData?.negative?.let {
-                        Button(
-                            onClick = {
-                                onDismiss?.invoke(null)
-                            },
-                            colors = ButtonDefaults.buttonColors(LogoutRed),
-                            shape = RoundedCornerShape(7.dp),
-                            modifier = Modifier.padding(end = 10.dp)
-
+                properties = properties,
+            ) {
+                Surface(
+                    modifier = Modifier, color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(15.dp),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+//                        currentData.title.Text(style = MaterialTheme.typography.headlineMedium)
+                        currentData.title.toInt().Text(style = MaterialTheme.typography.headlineMedium)
+                        Spacer(modifier = Modifier.height(18.dp))
+                        currentData.message.toInt().Text(style = MaterialTheme.typography.bodyMedium)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Text(text = it)
+                            if (!(currentData?.data as AppVersion).isOptional) {
+                                Button(
+                                    onClick = { events?.onDismiss(currentData?.data) },
+//                                    colors = ButtonDefaults.buttonColors(
+//                                        backgroundColor = PrimaryVariant,
+//                                        contentColor = com.jaya.app.vendor.presentation.ui.theme.Surface
+//                                    ),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = PrimaryVariant
+                                    ),
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(15.dp),
+                                    contentPadding = PaddingValues(12.dp)
+                                ) {
+                                    currentData.negative?.toInt()?.Text(style = MaterialTheme.typography.titleMedium)
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                            }
+                            Button(
+                                onClick = { events?.onConfirm(currentData?.data) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor  = PrimaryVariant,
+                                    contentColor = MaterialTheme.colorScheme.surface
+                                ),
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(15.dp),
+                                contentPadding = PaddingValues(12.dp)
+                            ) {
+                                currentData.positive.toInt().Text(style = MaterialTheme.typography.titleMedium)
+                            }
                         }
                     }
-                    //  }
-
-                },
-                confirmButton = {
-                    currentData?.positive?.let {
-                        Button(
-                            onClick = { onConfirm?.invoke(currentData?.data) },
-                            colors = ButtonDefaults.buttonColors(SplashGreen),
-                            shape = RoundedCornerShape(7.dp),
-                        ) {
-                            Text(text = it)
-                        }
-                    }
-
-
                 }
-
-            )
+            }
         }
     }
     EffectHandlers(viewModel)

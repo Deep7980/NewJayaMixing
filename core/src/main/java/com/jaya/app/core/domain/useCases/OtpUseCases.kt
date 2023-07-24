@@ -27,7 +27,7 @@ class OtpUseCases @Inject constructor(
                     when(status){
                         true ->{
                             if(isMatched){
-                                appStore.login(userId)
+                                appStore.login()
                                 appStore.setUserId(userId)
                                 emit(DataEntry(EmitType.BackendSuccess,message))
                                 emit(DataEntry(EmitType.Navigate,Destination.Dashboard))
@@ -44,7 +44,6 @@ class OtpUseCases @Inject constructor(
             is Resource.Error -> {
                 handleFailedResponse(
                     response = response,
-                    message = response.message,
                     emitType = EmitType.NetworkError
                 )
             }
