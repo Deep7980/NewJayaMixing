@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.chuckerteam.chucker.api.ChuckerCollector
 import com.chuckerteam.chucker.api.ChuckerInterceptor
+import com.jaya.app.core.common.EmitType
+import com.jaya.app.core.common.MetarFields
 import com.jaya.app.core.domain.repositories.AddProductRepository
 import com.jaya.app.core.domain.repositories.DashboardRepository
 import com.jaya.app.core.domain.repositories.LoginRepository
@@ -33,6 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
+import okhttp3.HttpUrl
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -54,7 +57,10 @@ interface AppModule {
             ).build()
 
             return Retrofit.Builder()
-                .baseUrl(Metar[Constants.BASE_URL])
+//                .baseUrl(Metar[Constants.BASE_URL])
+                .baseUrl(HttpUrl
+                    .Builder()
+                    .scheme("https").host(Metar[MetarFields.BaseUrl()]).build())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build()

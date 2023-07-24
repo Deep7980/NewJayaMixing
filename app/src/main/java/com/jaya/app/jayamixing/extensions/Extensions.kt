@@ -1,8 +1,13 @@
 package com.jaya.app.jayamixing.extensions
 
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.pm.ResolveInfo
 import android.content.res.Resources
+import android.net.Uri
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -34,6 +39,8 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.jaya.app.core.common.DataEntry
+import com.jaya.app.core.common.EmitType
 import com.jaya.app.jayamixing.helpers_impl.SavableMutableState
 
 @Composable
@@ -92,6 +99,58 @@ fun String.asColor(): Color {
     return Color(android.graphics.Color.parseColor(this))
 }
 
+@Composable
+fun <T> MutableState<T>.OnEffect(
+    intentionalCode: suspend (T) -> Unit,
+    clearance: () -> T,
+) {
+    LaunchedEffect(key1 = value) {
+        value?.let {
+            intentionalCode(it)
+            value = clearance()
+        }
+    }
+}
+
+fun Context.openPlayStore(link: String) {
+    val intent = Intent("market://details?id=$packageName")
+    var isFound = false
+
+    val otherApps: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
+    for (otherApp in otherApps) {
+        // look for Google Play application
+        if (otherApp.activityInfo.applicationInfo.packageName
+                .equals("com.android.vending")
+        ) {
+            val otherAppActivity: ActivityInfo = otherApp.activityInfo
+            val componentName = ComponentName(
+                otherAppActivity.applicationInfo.packageName,
+                otherAppActivity.name
+            )
+            // make sure it does NOT open in the stack of your activity
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            // task reparenting if needed
+            intent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            // if the Google Play was already open in a search result
+            //  this make sure it still go to the app page you requested
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            // this make sure only the Google Play app is allowed to
+            // intercept the intent
+            intent.component = componentName
+            startActivity(intent)
+            isFound = true
+            break
+        }
+    }
+
+    if (!isFound) {
+        val webIntent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(link)
+        )
+        startActivity(webIntent)
+    }
+}
 
 
 fun <T> Any.castListToRequiredTypes(): List<T>? {
@@ -213,6 +272,12 @@ fun bottomToUp() = slideInVertically(
     targetOffsetY = {-it},
     animationSpec = animationSpec()
 ) + fadeOut(animationSpec = animationSpec())
+
+//fun DataEntry.handleErrors(): String? = when (type) {
+//    EmitType.NETWORK_ERROR -> data.castValueToRequiredTypes<String>()
+//    EmitType.BACKEND_ERROR -> data.castValueToRequiredTypes<String>()
+//    else -> null
+//}
 
 
 fun Activity.changeStatusBarColor(color: Long) {

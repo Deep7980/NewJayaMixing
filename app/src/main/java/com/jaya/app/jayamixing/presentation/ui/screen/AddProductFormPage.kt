@@ -446,7 +446,11 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 Button(
                     contentPadding = PaddingValues(0.dp),
                     onClick = {
-                        viewModel.addMixingLabourToList()
+                        if(viewModel.mixingLabourSearchQuery.text.isNotEmpty()){
+                            viewModel.addMixingLabourToList()
+                        }else{
+                            Toast.makeText(context,"Please add mixing labour name",Toast.LENGTH_SHORT).show()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(SplashGreen),
                     modifier = Modifier
@@ -641,7 +645,11 @@ fun AddProductFormPage(viewModel: AddProductViewModel, baseViewModel: BaseViewMo
                 Button(
                     contentPadding = PaddingValues(0.dp),
                     onClick = {
-                        viewModel.addCuttingLabourToList()
+                        if(viewModel.cuttingLabourSearchQuery.text.isNotEmpty()){
+                            viewModel.addCuttingLabourToList()
+                        }else{
+                            Toast.makeText(context,"Please add cutting labour name",Toast.LENGTH_SHORT).show()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(SplashGreen),
                     modifier = Modifier

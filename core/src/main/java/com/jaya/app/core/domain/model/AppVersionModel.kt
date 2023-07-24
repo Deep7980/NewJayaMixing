@@ -7,10 +7,15 @@ data class AppVersionModel(
 )
 
 data class AppVersion(
-    val isSkipable: Boolean,
-    val versionLink: String,
-    val releaseDate: String,
-    val versionCode: Int,
-    val versionMessage: String,
-    val versionTitle: String
+//    val isSkipable: Boolean,
+//    val versionLink: String,
+//    val releaseDate: String,
+//    val versionCode: Int,
+//    val versionMessage: String,
+//    val versionTitle: String
+    val name: String,
+    val isUpdateAvailable: Boolean,
+    val description: String,
+    val link: String? = null,
+    val isOptional: Boolean
 )

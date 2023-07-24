@@ -13,4 +13,7 @@
     <string name="shift_A">Shift A</string>
     <string name="shift_B">Shift B</string>
     <string name="shift_C">Shift C</string>
+    <string name="update_app">Update App</string>
+    <string name="update">UPDATE</string>
+    <string name="skip">SKIP</string>
 </resources>

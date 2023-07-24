@@ -34,9 +34,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+<!--        <meta-data-->
+<!--            android:name="base_url"-->
+<!--            android:value="https://api.npoint.io" />-->
         <meta-data
             android:name="base_url"
-            android:value="https://api.npoint.io" />
+            android:value="apis.jayaindustries.in" />
     </application>
 
 </manifest>

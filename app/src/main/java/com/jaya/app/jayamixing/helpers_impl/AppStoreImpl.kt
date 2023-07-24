@@ -4,12 +4,16 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
 import com.jaya.app.core.common.PrefConstants
+import com.jaya.app.core.domain.model.Domain
 import com.jaya.app.core.domain.model.ProdDetails
 import com.jaya.app.core.domain.model.UserData
 import com.jaya.app.core.helpers.AppStore
+import com.jaya.app.core.utils.AppPreference
 import com.jaya.app.jayamixing.extensions.decodeJson
 import com.jaya.app.jayamixing.extensions.encodeJson
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -24,11 +28,24 @@ class AppStoreImpl @Inject constructor(
         }
     }
 
-    override suspend fun login(userId: String) {
-        prefs.edit {
-            it[stringPreferencesKey(PrefConstants.USER_ID)] = userId
+    override suspend fun setUserToken(token: String?) {
+        if (token != null) {
+            prefs.edit {
+                it[stringPreferencesKey(AppPreference.TOKEN)] = token
+            }
+        } else {
+            prefs.edit {
+                it.remove(stringPreferencesKey(AppPreference.TOKEN))
+            }
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun userToken(): String? = prefs.data.mapLatest {
+        it[stringPreferencesKey(AppPreference.TOKEN)]
+    }.first()
+
+    override suspend fun login(): Boolean = userToken() != null && userId().isNotEmpty()
 
     override suspend fun userId(): String {
         return prefs.data.map {
@@ -98,6 +115,26 @@ class AppStoreImpl @Inject constructor(
                 it.remove(stringPreferencesKey(PrefConstants.USER_ID))
             }
         }
+    }
+
+    override suspend fun setBaseUrl(url: String, changeImmediate: String) {
+        if (changeImmediate == Domain.CHANGE) {
+            prefs.edit {
+                it[stringPreferencesKey(AppPreference.BASE_URL)] = url
+            }
+        } else {
+            prefs.edit {
+                it[stringPreferencesKey(AppPreference.BASE_URL)] = ""
+            }
+        }
+    }
+
+    override suspend fun baseUrl(): String? {
+        val url = prefs.data.map {
+            it[stringPreferencesKey(AppPreference.BASE_URL)]
+        }.first()
+
+        return if (!url.isNullOrEmpty()) "https://$url" else null
     }
 
 

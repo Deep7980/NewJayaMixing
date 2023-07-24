@@ -51,6 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.jaya.app.jayamixing.R
 import com.jaya.app.jayamixing.extensions.OnEffect
 import com.jaya.app.jayamixing.extensions.Text
+import com.jaya.app.jayamixing.extensions.openPlayStore
 import com.jaya.app.jayamixing.presentation.viewmodels.SplashViewModel
 import com.jaya.app.jayamixing.ui.theme.AppBarYellow
 import com.jaya.app.jayamixing.ui.theme.LogoutRed
@@ -105,7 +106,7 @@ fun SplashScreen(viewModel: SplashViewModel = hiltViewModel()) {
                         OvershootInterpolator(4f).getInterpolation(it)
                     })
             )
-            delay(2000L)
+            delay(5000L)
             //navController.navigate(AppRoutes.MOBILE_NO)
             //  viewModel.onSplashToLogin()
         }
@@ -115,20 +116,21 @@ fun SplashScreen(viewModel: SplashViewModel = hiltViewModel()) {
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(modifier = Modifier.wrapContentSize())
+            Column(modifier = Modifier.wrapContentSize(),horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center)
             {
                 Image(
                     painter = painterResource(R.drawable.cropped_logo),
                     contentDescription = "Logo",
                     modifier = Modifier
                         .size(animation.value)
-                        .padding(start = 60.dp)
+//                        .padding(start = 60.dp)
                        ,
                 )
                 R.string.app_name.Text(
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
+                        color = Color.Red
                     ),
                     modifier = Modifier.graphicsLayer {
                         scaleX = fontAnimation.value
@@ -270,21 +272,12 @@ fun SplashScreen(viewModel: SplashViewModel = hiltViewModel()) {
 private fun EffectHandlers(viewModel: SplashViewModel) {
     val localContext = LocalContext.current
 
-    viewModel.versionUpdateLink.OnEffect(
-        intentionalCode = { link->
-            link?.let { lk->
-                if(lk.isNotEmpty()) {
-                    try {
-                        val appStoreIntent = Intent(Intent.ACTION_VIEW).also {
-                            it.data = Uri.parse(lk)
-                        }
-                        localContext.startActivity(appStoreIntent)
-                    } catch (exception: Exception) {
-                        // Toast.makeTextl(localContext, "unable_to_open_play_store", Toast.LENGTH_SHORT).show()
-                    }
-                }
+    viewModel.appPlayStoreLink.OnEffect(
+        intentionalCode = {
+            if (it.isNullOrEmpty()) {
+                localContext.openPlayStore(it!!)
             }
         },
-        clearance = {""}
+        clearance = { null }
     )
 }

@@ -1,5 +1,6 @@
 package com.jaya.app.core.utils
 
+import com.jaya.app.core.common.Destination
 import kotlinx.coroutines.channels.Channel
 
 sealed class NavigationIntent {
@@ -42,5 +43,12 @@ interface AppNavigator {
         popUpToRoute: String? = null,
         inclusive: Boolean = false,
         isSingleTop: Boolean = false,
+    )
+
+    fun navigateToRoute(
+        destination: Destination,
+        popToRoute: Destination,
+        inclusive: Boolean,
+        singleTop: Boolean,
     )
 }
